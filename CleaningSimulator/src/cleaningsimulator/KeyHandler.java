@@ -39,6 +39,9 @@ public class KeyHandler implements KeyListener
             case KeyEvent.VK_LEFT:
                 frame.leftKey = true;
                 break;
+            case KeyEvent.VK_H:
+                frame.hKey = true;
+                break;
         }
     }
     
@@ -57,6 +60,9 @@ public class KeyHandler implements KeyListener
                 break;
             case KeyEvent.VK_LEFT:
                 frame.leftKey = false;
+                break;
+            case KeyEvent.VK_H:
+                frame.hKey = false;
                 break;
         }
     }

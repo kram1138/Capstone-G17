@@ -14,18 +14,16 @@ import java.awt.Graphics;
  */
 public class RoomNode extends SimObject
 {
-    public int x;
-    public int y;
+    public Point loc;
     
     public RoomNode(int x, int y, WindowFrame frame)
     {
-        this.x = x;
-        this.y = y;
+        loc = new Point(x, y);
     }
     
     public void paint(Graphics g)
     {
         g.setColor(Color.red);
-        g.drawOval(x - 3, y - 3, 6, 6);
+        g.drawOval(loc.x - 3, loc.y - 3, 6, 6);
     }
 }

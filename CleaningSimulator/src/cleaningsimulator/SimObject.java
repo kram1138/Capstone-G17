@@ -10,7 +10,6 @@ import java.awt.Graphics;
 public class SimObject
 {
     public SimObject(){};
-    
     public void paint(Graphics g)
     {
     

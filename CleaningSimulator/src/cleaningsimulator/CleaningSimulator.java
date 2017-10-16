@@ -6,12 +6,13 @@
 package cleaningsimulator;
 
 import java.awt.*;
+import java.util.Random;
 import javax.swing.*;
 import java.util.Scanner;
 
 /**
  *
- * @author kram1
+ * @author kram
  */
 public class CleaningSimulator {
 
@@ -20,40 +21,41 @@ public class CleaningSimulator {
      */
     public static void main(String[] args)
     {
-        WindowFrame frame = new WindowFrame();
-
+        float speed = 0.5f;
+        float pixelsPerMeter = 100;
+        Random rand = new Random();
+        int sizex = 1600, sizey = 1000;
+        WindowFrame frame = new WindowFrame(sizex, sizey);
         // Use the setSize method that our BasicFrame
         // object inherited to make the frame
         // 200 pixels wide and high.
-        frame.setSize(1000,1000);
+        frame.setSize(sizex, sizey);
 
         // Make the window show on the screen.
         frame.setVisible(true);
         frame.addKeyListener(new KeyHandler(frame));
         
-        Robot r = new Robot(50, 50, 20, frame);
-        Room room = new Room(r, frame);
+        Room room = new Room(frame, sizex, sizey, rand);
+        Robot r = new Robot(500, 500, 20, frame, room);
         long last = System.currentTimeMillis();
-        int factor = 4;
+        int frames = 50;
         while (true)
         {
-            if (last + 10*factor < System.currentTimeMillis())
+            if (last + frames < System.currentTimeMillis())
             {
                 r.update();
-                room.update();
+                room.update(r);
                 if (frame.upKey)
-                    r.speed += .03*factor;
+                    r.setSpeed((float)frames/1000*pixelsPerMeter*speed);
                 else if (frame.downKey)
-                    r.speed -= .03*factor;
-                else if (r.speed > 0)
-                    r.speed -= .05*factor;
+                    r.setSpeed(0);
                 
                 if (frame.leftKey != frame.rightKey)
                 {
                     if (frame.leftKey)
-                        r.dir -= .02*factor;
+                        r.changeDir(0.1f);
                     else if (frame.rightKey)
-                        r.dir += .02*factor;
+                        r.changeDir(-.1f);
                 }
                 last = System.currentTimeMillis();
                 frame.repaint();

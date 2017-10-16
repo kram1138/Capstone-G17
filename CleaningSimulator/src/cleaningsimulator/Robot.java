@@ -7,6 +7,7 @@ package cleaningsimulator;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.util.ArrayList;
 
 /**
  *
@@ -14,38 +15,161 @@ import java.awt.Graphics;
  */
 public class Robot extends SimObject
 {
-    public float x;
-    public float y;
+    private PointF loc;
     
-    public float dir;
-    public float speed;
+    private float dir;
+    private float speed;
     
     public int radius;
+    private Room room;
     
-    public Robot(int x, int y, int radius, WindowFrame frame)
+    public Robot(int x, int y, int radius, WindowFrame frame, Room room)
     {
-        this.x = x;
-        this.y = y;
+        loc = new PointF(x,y);
         this.radius = radius;
         frame.toDraw.add(this);
+        this.room = room;
     }
     
     public void paint(Graphics g)
     {
         g.setColor(Color.MAGENTA);
-        g.fillOval((int)x - radius, (int)y - radius, radius * 2, radius * 2);
+        g.fillOval((int)loc.x - radius, (int)loc.y - radius, radius * 2, radius * 2);
         g.setColor(Color.BLACK);
-        g.drawLine((int)x, (int)y, (int)(x + Math.cos(dir) * radius), (int)(y + Math.sin(dir) * radius));
+        g.drawLine((int)loc.x, (int)loc.y, (int)(loc.x + Math.cos(dir) * radius), (int)(loc.y + Math.sin(dir) * radius));
+    
+        float d = frontSensor();
+        
+        g.setColor(Color.red);
+        g.drawString("d: " + d + "pixels", 10, 150);
+        g.drawLine((int)getLoc().x, (int)getLoc().y, (int)(getLoc().x + Math.cos(getDir()) * d), (int)(getLoc().y + Math.sin(getDir()) * d));
+    
     }
     
     public void update()
     {
-        if (speed > 1*4)
-            speed = 1*4;
-        else if (speed < -1*4)
-            speed = -1*4;
+        loc.x += Math.cos(dir) * speed;
+        loc.y += Math.sin(dir) * speed;
+    }
+    
+    public void setSpeed(float s)
+    {
+        this.speed = s;
+    }
+    
+    public void changeDir(float d)
+    {
+        this.dir += d;
+    }
+    
+    public PointF getLoc()
+    {
+        return this.loc;
+    }
+    public float getDir()
+    {
+        return this.dir;
+    }
+    
+    private boolean insideRect(double x, double y, Rectangle r)
+    {
+        return r.pt1.x < x - 4 && x + 4 < r.pt2.x &&
+               r.pt1.y < y - 4 && y + 4 < r.pt2.y;
+    }
+    
+    private Point calcy(Rectangle r, double y)
+    {
+        double m=0,b=0,x=0;
         
-        x += Math.cos(dir) * speed;
-        y += Math.sin(dir) * speed;
+            m = Math.tan(dir);
+            b = loc.y - (m*loc.x);
+            if(Double.isFinite(b) && Double.isFinite(b))
+                x = (y - b) / m;
+            if (Math.abs(Math.cos(dir)) < .1 || Double.isInfinite(y))
+                x = loc.x;
+            
+        boolean in = false;
+        if (r.pt1.x < x && x < r.pt2.x)
+        {
+            for (Rectangle r2 : room.rects)
+            {
+                if (r != r2 && insideRect(x,y,r2))
+                {
+                    in = true;
+                }
+            }
+        }
+        if (!in)
+            return new Point((int)x,(int)y);
+        return null;
+    }
+    
+    private Point calcx(Rectangle r, double x)
+    {
+        double m=0,b=0,y=0;
+        
+        {
+            m = 1/Math.tan(dir);
+            b = loc.x - (m*loc.y);
+            if(Double.isFinite(b) && Double.isFinite(b))
+                y = (x - b) / m;
+            if (Math.abs(Math.sin(dir)) < .1 || Double.isInfinite(y))
+                y = loc.y;
+        }
+        boolean in = false;
+        if (r.pt1.y < y && y < r.pt2.y)
+        {
+            for (Rectangle r2 : room.rects)
+            {
+                if (r != r2 && insideRect(x,y,r2))
+                {
+                    in = true;
+                }
+            }
+        }
+        if (!in)
+            return new Point((int)x,(int)y);
+        return null;
+    }
+    
+    public float frontSensor()
+    {
+        ArrayList<Point> pts = new ArrayList<Point>();
+        Point p;
+        for (Rectangle r : room.rects)
+        {
+            if (Math.sin(dir) < 0 && r.pt1.y < loc.y)
+            {
+                    p = calcy(r, r.pt1.y);
+                    if (p != null)
+                        pts.add(p);
+            }
+            else if (Math.sin(dir) > 0 && r.pt2.y > loc.y)
+            {
+                p = calcy(r, r.pt2.y);
+                if (p != null)
+                    pts.add(p);
+            }
+            if (Math.cos(dir) > 0 && r.pt2.x > loc.x)
+            {
+                p = calcx(r, r.pt2.x);
+                if (p != null)
+                    pts.add(p);
+            }
+            else if (Math.cos(dir) < 0 && r.pt1.x < loc.x)
+            {
+                p = calcx(r, r.pt1.x);
+                if (p != null)
+                    pts.add(p);
+            }
+        }
+        float min = Float.MAX_VALUE;
+        float d;
+        for (Point pt : pts)
+        {
+            d = room.Distance(pt, new Point(loc));
+            min = Float.min(d, min);
+        }
+        return min;
     }
 }
