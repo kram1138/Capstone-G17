@@ -2,17 +2,21 @@
 Generic program for testing various things related to our project.
 
 @author Lucas Wiebe-Dembowski
-@since 10/15/2017
+@since 10/21/2017
 */
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Test{
+
+	final static boolean VERBOSE = true;
+
 	public static void main(String[] args){
 		// testCSVParser("adjMatrix1.csv", "out/adjMatrix1_out.csv");
-		// testSimulatorMatrixGenerator();
-		testMatrixMultiply("matrix2.csv", "matrix3.csv");
+		testSimulatorMatrixGenerator();
+		// testMatrixMultiply("matrix2.csv", "matrix3.csv");
+		// testPathMatrixFunction();
 
 		System.out.println("Done testing.");
 	}
@@ -22,9 +26,11 @@ public class Test{
 		int numRooms = 8;
 		int numIntersections = 2;
 		int maxDirectionsPerIntersection = 3;
-		ArrayList<ArrayList<Float>> B = S.randomAdjMatrix(numRooms, numIntersections, maxDirectionsPerIntersection, true);
+		ArrayList<ArrayList<Float>> B = S.randomAdjMatrix(numRooms, numIntersections, maxDirectionsPerIntersection, VERBOSE);
+		System.out.println("Randomly generated adjacency matrix:");
 		printMatrix(B);
-		System.out.println("B is " + (isSymmetric(B, true) ? "" : "NOT") + " symmetric.");
+		System.out.println("B is " + (isSymmetric(B, VERBOSE) ? "" : "NOT") + " symmetric.");
+		System.out.println("B is " + (isConnected(B, VERBOSE) ? "" : "NOT") + " connected.");
 	}
 
 	public static void testCSVParser(){ testCSVParser("adjMatrix1.csv", "out/adjMatrix1_out.csv"); }
@@ -33,7 +39,7 @@ public class Test{
 		ArrayList<ArrayList<Float>> B = P.matrixListFromCSV(inputFile);
 		printMatrix(B);
 		P.matrixToCSV(B, outputFile);
-		System.out.println("B is " + (isSymmetric(B, true) ? "" : "NOT") + " symmetric.");
+		System.out.println("B is " + (isSymmetric(B, VERBOSE) ? "" : "NOT") + " symmetric.");
 	}
 
 	public static void testMatrixMultiply(String inputFile1, String inputFile2){
@@ -46,6 +52,94 @@ public class Test{
 		printMatrix(m1);
 		printMatrix(m2);
 		printMatrix(matrixMultiply(m1, m2));
+	}
+
+	public static void testPathMatrixFunction(){
+		//First test a randomly generated one.
+		Simulator S = new Simulator();
+		int numRooms = 8;
+		int numIntersections = 2;
+		int maxDirectionsPerIntersection = 3;
+		ArrayList<ArrayList<Float>> B = S.randomAdjMatrix(numRooms, numIntersections, maxDirectionsPerIntersection, VERBOSE);
+		printMatrix(B);
+		CSVParser csv = new CSVParser();
+		csv.matrixToCSV(B, "out/testSimulatorMatrixGenerator.csv");
+		ArrayList<ArrayList<Float>> P = pathMatrix(B);
+		printMatrix(P);
+
+		//Then test a hand-generated one.
+		ArrayList<ArrayList<Float>> m4 = csv.matrixListFromCSV("matrix4.csv");
+		printMatrix(m4);
+		ArrayList<ArrayList<Float>> P2 = pathMatrix(m4);
+		printMatrix(P2);
+	}
+
+	public static boolean isConnected(ArrayList<ArrayList<Float>> A, boolean verbose){
+		/*
+		Reads adjacency matrix A and returns true if it is connected. Otherwise returns false.
+		It does this by checking if there are any zeroes in the first row of the path matrix returned by pathMatrix().
+		Assumes that the return value of pathMatrix() will only have nonnegative values, and no negative or null values.
+		*/
+		boolean result = true;
+		ArrayList<ArrayList<Float>> P = pathMatrix(A);
+		for(int i = 0; i < P.get(0).size(); i++){
+			if(P.get(0).get(i) < 0){ throw new IllegalArgumentException("Path matrix contains negative values!"); }
+			if(P.get(0).get(i) == 0.0){
+				if(verbose){
+					System.out.printf("vertex %d has no path to vertex 0\n", i);
+				}
+				result = false;
+			}
+		}
+		if(verbose){
+			System.out.println("Path matrix:");
+			printMatrix(P);
+		}
+		return result;
+	}
+
+	public static ArrayList<ArrayList<Float>> pathMatrix(ArrayList<ArrayList<Float>> A){
+		/*
+		Reads adjacency matrix A and returns path matrix P.
+		This uses a slightly modified Warshall's algorithm.
+		
+		The definition of Warshall's algorithm is for adjacency matrices containing only zeros and ones,
+		but this version works with any values. values <= 0 are treated like 0, and values > 0 are treated like 1.
+		
+		The resulting path matrix returned by this function will still contain only zeros and ones,
+		exactly as if A contained only zeros and ones in the first place.
+		*/
+		if(!isSquare(A, VERBOSE)){
+			throw new IllegalArgumentException("Warshall's algorithm undefined for non-square matrix. Dimensions: " + A.size() + "x" + A.get(0).size());
+		}
+		ArrayList<ArrayList<Float>> P = matrixDeepCopy(A);
+		int n = A.size();
+		for(int k = 0; k < n; k++){
+			for(int i = 0; i < n; i++){
+				for(int j = 0; j < n; j++){
+					if(P.get(i).get(k) > 0 && P.get(k).get(j) > 0){
+						P.get(i).set(j, 1.0f);
+					}else if(P.get(i).get(j) < 0){ //just to get rid of any negative entries, if there are any.
+						P.get(i).set(j, 0.0f);
+					}
+				}
+			}
+		}
+		return P;
+	}
+
+	public static <T> ArrayList<ArrayList<T>> matrixDeepCopy(ArrayList<ArrayList<T>> A){
+		/*
+		Return a new 2D matrix containing the same elements as A.
+		Only tested for primitive data types. 
+		If T is an object, not a primitive type, this might not deep copy the objects.
+		*/
+		ArrayList<ArrayList<T>> B = new ArrayList<ArrayList<T>>();
+		for(int i = 0; i < A.size(); i++){
+			B.add(new ArrayList<T>());
+			B.get(i).addAll(A.get(i));
+		}
+		return B;
 	}
 
 	public static ArrayList<ArrayList<Float>> matrixMultiply(ArrayList<ArrayList<Float>> m1, ArrayList<ArrayList<Float>> m2) {
@@ -147,6 +241,10 @@ public class Test{
 		//Print a 2D Float ArrayList of any size to the console.
 		//Formatting is designed to look good for square float matrices with only 1 decimal place of precision.
 		//Row numbers and column numbers are displayed
+		if(A.size() == 0){
+			System.out.println("Matrix is empty");
+			return;
+		}
 		System.out.print("   ");
 		for(int i = 0; i < A.get(0).size(); i++){ //column numbers
 			System.out.printf("%6d", i);
