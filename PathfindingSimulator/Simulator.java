@@ -11,6 +11,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Simulator{
+	public ArrayList<ArrayList<Float>> randomConnectedAdjMatrix(int numRooms, int numIntersections, int maxDirectionsPerIntersection, boolean verbose){
+		ArrayList<ArrayList<Float>> A = randomAdjMatrix(numRooms, numIntersections, maxDirectionsPerIntersection, verbose);
+		makeConnected(A, numIntersections, verbose);
+		return A;
+	}
+
 	public ArrayList<ArrayList<Float>> randomAdjMatrix(int numRooms, int numIntersections, int maxDirectionsPerIntersection, boolean verbose){
 		/*
 		Return a 2D Float ArrayList of size nxn. This represents the adjacency matrix of a graph.
@@ -104,6 +110,169 @@ public class Simulator{
 			}
 		}
 		return nodesLists;
+	}
+
+	public void makeConnected(ArrayList<ArrayList<Float>> A, int numIntersections, boolean verbose){
+		/*
+		If the graph is already connected, do nothing.
+		Otherwise, find vertices that have no path to vertex 0 and connect them to vertices with paths to vertex 0.
+
+		This function only needs to exist because randomAdjMatrixNodesList() usually produces graphs that are almost but not connected.
+		*/
+		if(adjMatrixIsConnected(A, false)){ return; }
+		ArrayList<ArrayList<Float>> P = pathMatrix(A, verbose);
+		float x; //temporary variable to store the random edge weight to put in an entry of the matrix
+		boolean found = false; //Indicates whether a nonzero entry was found in row 0.
+		int m = P.get(0).size() - 1;
+		for(int i = numIntersections; i < P.get(0).size(); i++){ //search for a 0
+			//Starting at numIntersections because I don't want to connect an intersection to anything else
+			if(P.get(0).get(i) < 0){ throw new IllegalArgumentException("Path matrix contains negative values!"); }
+			found = false;
+			if(P.get(0).get(i) == 0.0f){ //vertex i has no path to vertex 0
+				for(int j = m; !found && j >= 0; j--){
+					m--; //don't connect anything else to vertex j. We don't want vertices with more than 3 vertices attached to them.
+					//search for something that is not 0. Start at the end because randomAdjMatrixNodesList() puts intersections at the beginning
+					if(P.get(0).get(j) > 0){ //vertex j has a path to vertex 0, so I'll connect j to i
+						found = true;
+						x = (float)(Math.random() * 10);
+						A.get(i).set(j, x);
+						A.get(j).set(i, x);
+						if(verbose){
+							System.out.printf("connecting vertices %d and %d\n", i, j);
+						}
+						P = pathMatrix(A, verbose);
+						if(pathMatrixIsConnected(P, false)){ return; }
+					}
+				}
+			}
+		}
+	}
+
+	public ArrayList<ArrayList<Float>> pathMatrix(ArrayList<ArrayList<Float>> A, boolean verbose){
+		/*
+		Reads adjacency matrix A and returns path matrix P.
+		This uses a slightly modified Warshall's algorithm.
+		
+		The definition of Warshall's algorithm is for adjacency matrices containing only zeros and ones,
+		but this version works with any values. values <= 0 are treated like 0, and values > 0 are treated like 1.
+		
+		The resulting path matrix returned by this function will still contain only zeros and ones,
+		exactly as if A contained only zeros and ones in the first place.
+		*/
+		if(!isSquare(A, verbose)){
+			throw new IllegalArgumentException("Warshall's algorithm undefined for non-square matrix. Dimensions: " + A.size() + "x" + A.get(0).size());
+		}
+		ArrayList<ArrayList<Float>> P = matrixDeepCopy(A);
+		int n = A.size();
+		for(int k = 0; k < n; k++){
+			for(int i = 0; i < n; i++){
+				for(int j = 0; j < n; j++){
+					if(P.get(i).get(k) > 0 && P.get(k).get(j) > 0){
+						P.get(i).set(j, 1.0f);
+					}else if(P.get(i).get(j) < 0){ //just to get rid of any negative entries, if there are any.
+						P.get(i).set(j, 0.0f);
+					}
+				}
+			}
+		}
+		return P;
+	}
+
+	public boolean adjMatrixIsConnected(ArrayList<ArrayList<Float>> A, boolean verbose){
+		/*
+		Helper function for pathMatrixIsConnected() that generates the path matrix if the calling function didn't want/need to.
+		Running time O(n^3).
+		*/
+		ArrayList<ArrayList<Float>> P = pathMatrix(A, verbose);
+		return pathMatrixIsConnected(P, verbose);
+	}
+
+	public boolean pathMatrixIsConnected(ArrayList<ArrayList<Float>> P, boolean verbose){
+		/*
+		Reads path matrix P and returns true if the corresponding adjacency is connected. Otherwise returns false.
+		It does this by checking if there are any zeroes in the first row of the path matrix.
+		Assumes that the path matrix will only have nonnegative values, and no negative or null values.
+		Running time O(n).
+		*/
+		boolean result = true;
+		for(int i = 0; i < P.get(0).size(); i++){
+			if(P.get(0).get(i) == 0){
+				if(verbose){
+					System.out.printf("vertex %d has no path to vertex 0\n", i);
+				}
+				result = false;
+			}
+		}
+		if(verbose){
+			System.out.println("Path matrix:");
+			printMatrix(P);
+		}
+		return result;
+	}
+
+	public <T> ArrayList<ArrayList<T>> matrixDeepCopy(ArrayList<ArrayList<T>> A){
+		/*
+		Return a new 2D matrix containing the same elements as A.
+		Only tested for primitive data types. 
+		If T is an object, not a primitive type, this might not deep copy the objects.
+		*/
+		ArrayList<ArrayList<T>> B = new ArrayList<ArrayList<T>>();
+		for(int i = 0; i < A.size(); i++){
+			B.add(new ArrayList<T>());
+			B.get(i).addAll(A.get(i));
+		}
+		return B;
+	}
+
+	public boolean isSymmetric(ArrayList<ArrayList<Float>> A, boolean verbose){
+		//A matrix A_nxn is symmetric iff it is square and if for all i,j in [0,n) : Aij = Aji
+		//This method can't be generic because the comparison done inside the for loop depends on the data type.
+		boolean result = true;
+		if(isSquare(A, true)){
+			int n = A.size();
+			int i, j;
+			for(i = 0; result && i < n; i++){ //Loop over upper triangle of the matrix
+				for(j = i; result && j < n; j++){
+					//Need to unbox Float to float so the comparison operator compares the value, NOT the instance!
+					float Aij = A.get(i).get(j);
+					float Aji = A.get(j).get(i);
+					if(verbose && i == j && Aij != 0){ System.out.printf("row %d diagonal element is %f!\n", i, Aij); }
+					if(Aij != Aji){
+						if(verbose){
+							System.out.printf("A(%d,%d) = %.20f but A(%d,%d) = %.20f\n", i, j, Aij, j, i, Aji);
+						}
+						result = false; //Aij != Aji <=> not symmetric
+					}
+				}
+			}
+		}else{
+			if(verbose){ System.out.println("B is NOT square."); }
+			result = false; //not square <=> not symmetric
+		}
+		return result;
+	}
+
+	public <T> boolean isSquare(ArrayList<ArrayList<T>> A, boolean verbose){
+		//A matrix is square if the number of rows is equal to the number of columns.
+		//Can't have a matrix with variable length rows.
+		//Variable length columns is impossible anyways due to the structure of an ArrayList<ArrayList<T>>
+		boolean result = true;
+		int numRows = A.size();
+		for(int i = 1; i < numRows; i++){
+			if(A.get(i).size() != numRows){
+				if(verbose){
+					System.out.printf("Row %d has length %d but the number of rows is %d\n", i, A.get(i).size(), numRows);
+				}
+				return false;
+			}
+			if(i > 0 && A.get(i).size() != A.get(i-1).size()){
+				if(verbose){
+					System.out.printf("Row %d has length %d but the row %d has length %d\n", i, A.get(i).size(), i-1, A.get(i-1).size());
+				}
+				return false;
+			}
+		}
+		return result;
 	}
 
 	public <T> void printMatrix(ArrayList<ArrayList<T>> A){
