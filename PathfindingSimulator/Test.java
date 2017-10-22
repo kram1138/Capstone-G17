@@ -2,7 +2,7 @@
 Generic program for testing various things related to our project.
 
 @author Lucas Wiebe-Dembowski
-@since 10/21/2017
+@since 10/22/2017
 */
 
 import java.util.ArrayList;
@@ -11,6 +11,7 @@ import java.util.Arrays;
 public class Test{
 
 	final static boolean VERBOSE = true;
+	final static int numIntersections = 4;
 
 	public static void main(String[] args){
 		// testCSVParser("adjMatrix1.csv", "out/adjMatrix1_out.csv");
@@ -23,14 +24,54 @@ public class Test{
 
 	public static void testSimulatorMatrixGenerator(){
 		Simulator S = new Simulator();
-		int numRooms = 8;
-		int numIntersections = 2;
+		int numRooms = 30;
 		int maxDirectionsPerIntersection = 3;
-		ArrayList<ArrayList<Float>> B = S.randomAdjMatrix(numRooms, numIntersections, maxDirectionsPerIntersection, VERBOSE);
+		ArrayList<ArrayList<Float>> A = S.randomAdjMatrix(numRooms, numIntersections, maxDirectionsPerIntersection, VERBOSE);
+		
 		System.out.println("Randomly generated adjacency matrix:");
-		printMatrix(B);
-		System.out.println("B is " + (isSymmetric(B, VERBOSE) ? "" : "NOT") + " symmetric.");
-		System.out.println("B is " + (isConnected(B, VERBOSE) ? "" : "NOT") + " connected.");
+		System.out.println("A is " + (isSymmetric(A, VERBOSE) ? "" : "NOT") + " symmetric.");
+		printMatrix(A);
+		System.out.println("A is " + (adjMatrixIsConnected(A, VERBOSE) ? "" : "NOT") + " connected.");
+		
+		makeConnected(A, VERBOSE);
+		printMatrix(A);
+		System.out.println("A is " + (adjMatrixIsConnected(A, VERBOSE) ? "" : "NOT") + " connected.");
+	}
+
+	/*
+	If the graph is already connected, do nothing.
+	Otherwise, find vertices that have no path to vertex 0 and connect them to vertices with paths to vertex 0.
+
+	This function only needs to exist because randomAdjMatrixNodesList() usually produces graphs that are almost but not connected.
+	*/
+	public static void makeConnected(ArrayList<ArrayList<Float>> A, boolean verbose){
+		if(adjMatrixIsConnected(A, false)){ return; }
+		ArrayList<ArrayList<Float>> P = pathMatrix(A);
+		float x; //temporary variable to store the random edge weight to put in an entry of the matrix
+		boolean found = false; //Indicates whether a nonzero entry was found in row 0.
+		int m = P.get(0).size() - 1;
+		for(int i = numIntersections; i < P.get(0).size(); i++){ //search for a 0
+			//Starting at numIntersections because I don't want to connect an intersection to anything else
+			if(P.get(0).get(i) < 0){ throw new IllegalArgumentException("Path matrix contains negative values!"); }
+			found = false;
+			if(P.get(0).get(i) == 0.0f){ //vertex i has no path to vertex 0
+				for(int j = m; !found && j >= 0; j--){
+					m--; //don't connect anything else to vertex j. We don't want vertices with more than 3 vertices attached to them.
+					//search for something that is not 0. Start at the end because randomAdjMatrixNodesList() puts intersections at the beginning
+					if(P.get(0).get(j) > 0){ //vertex j has a path to vertex 0, so I'll connect j to i
+						found = true;
+						x = (float)(Math.random() * 10);
+						A.get(i).set(j, x);
+						A.get(j).set(i, x);
+						if(verbose){
+							System.out.printf("connecting vertices %d and %d\n", i, j);
+						}
+						P = pathMatrix(A);
+						if(pathMatrixIsConnected(P, false)){ return; }
+					}
+				}
+			}
+		}
 	}
 
 	public static void testCSVParser(){ testCSVParser("adjMatrix1.csv", "out/adjMatrix1_out.csv"); }
@@ -74,17 +115,25 @@ public class Test{
 		printMatrix(P2);
 	}
 
-	public static boolean isConnected(ArrayList<ArrayList<Float>> A, boolean verbose){
+	public static boolean adjMatrixIsConnected(ArrayList<ArrayList<Float>> A, boolean verbose){
 		/*
-		Reads adjacency matrix A and returns true if it is connected. Otherwise returns false.
-		It does this by checking if there are any zeroes in the first row of the path matrix returned by pathMatrix().
-		Assumes that the return value of pathMatrix() will only have nonnegative values, and no negative or null values.
+		Helper function for pathMatrixIsConnected() that generates the path matrix if the calling function didn't want/need to.
+		Running time O(n^3).
+		*/
+		ArrayList<ArrayList<Float>> P = pathMatrix(A);
+		return pathMatrixIsConnected(P, verbose);
+	}
+
+	public static boolean pathMatrixIsConnected(ArrayList<ArrayList<Float>> P, boolean verbose){
+		/*
+		Reads path matrix P and returns true if the corresponding adjacency is connected. Otherwise returns false.
+		It does this by checking if there are any zeroes in the first row of the path matrix.
+		Assumes that the path matrix will only have nonnegative values, and no negative or null values.
+		Running time O(n).
 		*/
 		boolean result = true;
-		ArrayList<ArrayList<Float>> P = pathMatrix(A);
 		for(int i = 0; i < P.get(0).size(); i++){
-			if(P.get(0).get(i) < 0){ throw new IllegalArgumentException("Path matrix contains negative values!"); }
-			if(P.get(0).get(i) == 0.0){
+			if(P.get(0).get(i) == 0){
 				if(verbose){
 					System.out.printf("vertex %d has no path to vertex 0\n", i);
 				}
