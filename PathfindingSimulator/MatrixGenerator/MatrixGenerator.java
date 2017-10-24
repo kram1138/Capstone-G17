@@ -1,23 +1,25 @@
 /**
-Simulate a building pathfinding algorithm.
 Includes functions for generating random adjacency matrices, stored as 2D Float ArrayLists,
 representing the graph of a building with n rooms.
 
 @author Lucas Wiebe-Dembowski
-@since 10/15/2017
+@since 10/24/2017
 */
+package MatrixGenerator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class Simulator{
-	public ArrayList<ArrayList<Float>> randomConnectedAdjMatrix(int numRooms, int numIntersections, int maxDirectionsPerIntersection, boolean verbose){
+import GenericCode.Generic;
+
+public class MatrixGenerator{
+	public static ArrayList<ArrayList<Float>> randomConnectedAdjMatrix(int numRooms, int numIntersections, int maxDirectionsPerIntersection, boolean verbose){
 		ArrayList<ArrayList<Float>> A = randomAdjMatrix(numRooms, numIntersections, maxDirectionsPerIntersection, verbose);
 		makeConnected(A, numIntersections, verbose);
 		return A;
 	}
 
-	public ArrayList<ArrayList<Float>> randomAdjMatrix(int numRooms, int numIntersections, int maxDirectionsPerIntersection, boolean verbose){
+	public static ArrayList<ArrayList<Float>> randomAdjMatrix(int numRooms, int numIntersections, int maxDirectionsPerIntersection, boolean verbose){
 		/*
 		Return a 2D Float ArrayList of size nxn. This represents the adjacency matrix of a graph.
 		An entry of -1 in row i and column j means there is no edge connecting node i to j.
@@ -33,7 +35,7 @@ public class Simulator{
 		int i = 0; //loop counter
 
 		ArrayList<ArrayList<Integer>> nodesLists = randomAdjMatrixNodesList(numRooms, numIntersections, maxDirectionsPerIntersection);
-		if(verbose){ printMatrix(nodesLists); }
+		if(verbose){ Generic.printMatrix(nodesLists); }
 
 		Float[] minusOneArray = new Float[numNodes]; //Need Float, not float. ArrayList requires boxed primitives.
 		Arrays.fill(minusOneArray, -1.0f);
@@ -60,7 +62,7 @@ public class Simulator{
 		return matrix;
 	}
 
-	public ArrayList<ArrayList<Integer>> randomAdjMatrixNodesList(int numRooms, int numIntersections, int maxDirectionsPerIntersection){
+	public static ArrayList<ArrayList<Integer>> randomAdjMatrixNodesList(int numRooms, int numIntersections, int maxDirectionsPerIntersection){
 		/*
 		Randomly generate a list of lists representing an adjacency matrix.
 		Distances are not generated here.
@@ -98,11 +100,11 @@ public class Simulator{
 			//Try to find n random nodes to connect to node i
 			for(int aaa = 0; nodesLists.get(i).size() < capacities[i] && totalNodesAdded < numNodes && aaa < n; aaa++){
 				//Don't add anything to list i if it's size is at max capacity or if all the nodes have been added
-				j = randInt(0, numNodes);
+				j = Generic.randInt(0, numNodes);
 				while(i == j || nodesLists.get(j).size() >= capacities[j] || nodesLists.get(j).contains(i)){
 					//Keep trying until you find a node j that is not i, is not at max capacity and is not already connected to i
 					//Important: exit condition on the for loop one level up protects this while loop from looping forever.
-					j = randInt(0, numNodes);
+					j = Generic.randInt(0, numNodes);
 				}
 				nodesLists.get(i).add(j);
 				nodesLists.get(j).add(i);
@@ -112,7 +114,7 @@ public class Simulator{
 		return nodesLists;
 	}
 
-	public void makeConnected(ArrayList<ArrayList<Float>> A, int numIntersections, boolean verbose){
+	public static void makeConnected(ArrayList<ArrayList<Float>> A, int numIntersections, boolean verbose){
 		/*
 		If the graph is already connected, do nothing.
 		Otherwise, find vertices that have no path to vertex 0 and connect them to vertices with paths to vertex 0.
@@ -148,7 +150,7 @@ public class Simulator{
 		}
 	}
 
-	public ArrayList<ArrayList<Float>> pathMatrix(ArrayList<ArrayList<Float>> A, boolean verbose){
+	public static ArrayList<ArrayList<Float>> pathMatrix(ArrayList<ArrayList<Float>> A, boolean verbose){
 		/*
 		Reads adjacency matrix A and returns path matrix P.
 		This uses a slightly modified Warshall's algorithm.
@@ -162,7 +164,7 @@ public class Simulator{
 		if(!isSquare(A, verbose)){
 			throw new IllegalArgumentException("Warshall's algorithm undefined for non-square matrix. Dimensions: " + A.size() + "x" + A.get(0).size());
 		}
-		ArrayList<ArrayList<Float>> P = matrixDeepCopy(A);
+		ArrayList<ArrayList<Float>> P = Generic.matrixDeepCopy(A);
 		int n = A.size();
 		for(int k = 0; k < n; k++){
 			for(int i = 0; i < n; i++){
@@ -178,7 +180,7 @@ public class Simulator{
 		return P;
 	}
 
-	public boolean adjMatrixIsConnected(ArrayList<ArrayList<Float>> A, boolean verbose){
+	public static boolean adjMatrixIsConnected(ArrayList<ArrayList<Float>> A, boolean verbose){
 		/*
 		Helper function for pathMatrixIsConnected() that generates the path matrix if the calling function didn't want/need to.
 		Running time O(n^3).
@@ -187,7 +189,7 @@ public class Simulator{
 		return pathMatrixIsConnected(P, verbose);
 	}
 
-	public boolean pathMatrixIsConnected(ArrayList<ArrayList<Float>> P, boolean verbose){
+	public static boolean pathMatrixIsConnected(ArrayList<ArrayList<Float>> P, boolean verbose){
 		/*
 		Reads path matrix P and returns true if the corresponding adjacency is connected. Otherwise returns false.
 		It does this by checking if there are any zeroes in the first row of the path matrix.
@@ -205,26 +207,12 @@ public class Simulator{
 		}
 		if(verbose){
 			System.out.println("Path matrix:");
-			printMatrix(P);
+			Generic.printMatrix(P);
 		}
 		return result;
 	}
 
-	public <T> ArrayList<ArrayList<T>> matrixDeepCopy(ArrayList<ArrayList<T>> A){
-		/*
-		Return a new 2D matrix containing the same elements as A.
-		Only tested for primitive data types. 
-		If T is an object, not a primitive type, this might not deep copy the objects.
-		*/
-		ArrayList<ArrayList<T>> B = new ArrayList<ArrayList<T>>();
-		for(int i = 0; i < A.size(); i++){
-			B.add(new ArrayList<T>());
-			B.get(i).addAll(A.get(i));
-		}
-		return B;
-	}
-
-	public boolean isSymmetric(ArrayList<ArrayList<Float>> A, boolean verbose){
+	public static boolean isSymmetric(ArrayList<ArrayList<Float>> A, boolean verbose){
 		//A matrix A_nxn is symmetric iff it is square and if for all i,j in [0,n) : Aij = Aji
 		//This method can't be generic because the comparison done inside the for loop depends on the data type.
 		boolean result = true;
@@ -252,7 +240,7 @@ public class Simulator{
 		return result;
 	}
 
-	public <T> boolean isSquare(ArrayList<ArrayList<T>> A, boolean verbose){
+	public static <T> boolean isSquare(ArrayList<ArrayList<T>> A, boolean verbose){
 		//A matrix is square if the number of rows is equal to the number of columns.
 		//Can't have a matrix with variable length rows.
 		//Variable length columns is impossible anyways due to the structure of an ArrayList<ArrayList<T>>
@@ -273,18 +261,5 @@ public class Simulator{
 			}
 		}
 		return result;
-	}
-
-	public <T> void printMatrix(ArrayList<ArrayList<T>> A){
-		//Print a 2D ArrayList of any size to the console.
-		for(int i = 0; i < A.size(); i++){
-			System.out.printf("%2d: ",i);
-			System.out.println(A.get(i));
-		}
-	}
-
-	public int randInt(int min, int max){
-		//return a random int in [min, max).
-		return min + (int)(Math.random() * (max - min));
 	}
 }

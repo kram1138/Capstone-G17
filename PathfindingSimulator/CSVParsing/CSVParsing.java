@@ -7,15 +7,14 @@ Floats were used instead of doubles because the application using this will not 
 @author Lucas Wiebe-Dembowski
 @since 10/13/2017
 */
+package CSVParsing;
 
 import java.io.*;
 import java.util.ArrayList;
 
-class CSVParser{
+public class CSVParsing{
 
-	public CSVParser(){}
-
-	public ArrayList<ArrayList<Float>> matrixListFromCSV(String file){
+	public static ArrayList<ArrayList<Float>> matrixListFromCSV(String file){
 		//Read a 2-D float matrix of any size from a csv file, and return the result as a 2D Arraylist of Floats
 		//If a square matrix is required, the calling function must be responsible for ensuring that that is the case.
 
@@ -47,7 +46,7 @@ class CSVParser{
 		return matrix;
 	}
 
-	public void matrixToCSV(ArrayList<ArrayList<Float>> matrix, String file){
+	public static void matrixToCSV(ArrayList<ArrayList<Float>> matrix, String file){
 		//Print a 2D float matrix to a file. Assume the file is a .csv file.
 		//Prints everything in the matrix, regardless of size.
 		//If a square matrix is required, the calling function must be responsible for ensuring that that is the case.
