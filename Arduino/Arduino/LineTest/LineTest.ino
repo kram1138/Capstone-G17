@@ -32,6 +32,7 @@ const int MAX_SPEED = 150;
 
 void setup()
 {
+  Serial.begin(9600);
   // Play a little welcome song
   buzzer.play(">g32>>c32");
 
@@ -83,6 +84,11 @@ void loop()
   // argument to readLine() here, even though we are not interested in the
   // individual sensor readings
   int position = reflectanceSensors.readLine(sensors);
+  for(int i=0; i< 6; i++) {
+    Serial.print(sensors[i]);
+    Serial.print(",");
+  }
+  Serial.println();
 
   // Our "error" is how far we are away from the center of the line, which
   // corresponds to position 2500.
