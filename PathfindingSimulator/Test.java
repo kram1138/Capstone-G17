@@ -20,9 +20,8 @@ public class Test{
 	public static void main(String[] args){
 		// testCSVParser("adjMatrix1.csv", "out/adjMatrix1_out.csv");
 		testMatrixGenerator();
-		// testMatrixMultiply("matrix2.csv", "matrix3.csv");
 		// testPathMatrixFunction();
-
+		// testMatrixMultiply("matrix2.csv", "matrix3.csv");
 		System.out.println("Done testing.");
 	}
 

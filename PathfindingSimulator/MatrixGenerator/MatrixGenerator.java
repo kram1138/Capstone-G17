@@ -3,7 +3,7 @@ Includes functions for generating random adjacency matrices, stored as 2D Float 
 representing the graph of a building with n rooms.
 
 @author Lucas Wiebe-Dembowski
-@since 10/24/2017
+@since 10/25/2017
 */
 package MatrixGenerator;
 
@@ -49,7 +49,7 @@ public class MatrixGenerator{
 		int col = 0;
 		for(i = 0; i < nodesLists.size(); i++){ //i is the row number in the nodes list AND the matrix.
 			for(int j = 0; j < nodesLists.get(i).size(); j++){ //j is the column number in the nodes list, not the matrix
-				x = (float)(Math.random() * 10);
+				x = (float)(Math.random() * 10) + 0.1f; //the +0.1 is to avoid small numbers like 0.04 that will be rounded down to 0.0 when I print to the console.
 				col = nodesLists.get(i).get(j); //column of the matrix. the row is i.
 				if(matrix.get(i).get(col) <= 0){ //i.e. 0 or -1
 					matrix.get(i).set(col, x);
@@ -80,10 +80,19 @@ public class MatrixGenerator{
 			nodesLists.add(new ArrayList<Integer>());
 		}
 		int n = 0; //number of nodes one node is connected to
+		double roomNodeProbability = 1.0;
 
 		int[] capacities = new int[numNodes]; //Entry i of capacities is the max number of nodes that can be connected to node i
 		for(i = 0; i < numNodes; i++){ //assume nodes 0 up to numIntersections-1 are intersections
-			capacities[i] = i < numIntersections ? maxDirectionsPerIntersection : 2;
+			// capacities[i] = i < numIntersections ? maxDirectionsPerIntersection : 2;
+			if(i < numIntersections){ //It is an intersection node
+				n = maxDirectionsPerIntersection;
+			}else if(Math.random() < roomNodeProbability){ //It is a room node, in the middle of a hallway
+				n = 2;
+			}else{ //It is a room node at the end of a dead end hallway
+				n = 1;
+			}
+			capacities[i] = n;
 		}
 		
 		int totalNodesAdded = 0;
@@ -91,7 +100,7 @@ public class MatrixGenerator{
 		for(i = 0; totalNodesAdded < numNodes && i < numNodes; i++){ //stop if all the nodes have been added
 			if(i < numIntersections){ //It is an intersection node
 				n = maxDirectionsPerIntersection;
-			}else if(Math.random() > 0.1){ //It is a room node, in the middle of a hallway
+			}else if(Math.random() < roomNodeProbability){ //It is a room node, in the middle of a hallway
 				n = 2;
 			}else{ //It is a room node at the end of a dead end hallway
 				n = 1;
@@ -121,12 +130,13 @@ public class MatrixGenerator{
 
 		This function only needs to exist because randomAdjMatrixNodesList() usually produces graphs that are almost but not connected.
 		*/
-		if(adjMatrixIsConnected(A, false)){ return; }
-		ArrayList<ArrayList<Float>> P = pathMatrix(A, verbose);
+		if(adjMatrixIsConnected(A, verbose)){ return; }
+		ArrayList<ArrayList<Float>> P = pathMatrix(A, false);
 		float x; //temporary variable to store the random edge weight to put in an entry of the matrix
 		boolean found = false; //Indicates whether a nonzero entry was found in row 0.
+		boolean done = false;
 		int m = P.get(0).size() - 1;
-		for(int i = numIntersections; i < P.get(0).size(); i++){ //search for a 0
+		for(int i = numIntersections; !done && i < P.get(0).size(); i++){ //search for a 0
 			//Starting at numIntersections because I don't want to connect an intersection to anything else
 			if(P.get(0).get(i) < 0){ throw new IllegalArgumentException("Path matrix contains negative values!"); }
 			found = false;
@@ -142,12 +152,13 @@ public class MatrixGenerator{
 						if(verbose){
 							System.out.printf("connecting vertices %d and %d\n", i, j);
 						}
-						P = pathMatrix(A, verbose);
-						if(pathMatrixIsConnected(P, false)){ return; }
+						P = pathMatrix(A, false);
+						if(pathMatrixIsConnected(P, false)){ done = true; }
 					}
 				}
 			}
 		}
+		if(verbose){ System.out.println("Done fixing disconnected matrix"); }
 	}
 
 	public static ArrayList<ArrayList<Float>> pathMatrix(ArrayList<ArrayList<Float>> A, boolean verbose){
