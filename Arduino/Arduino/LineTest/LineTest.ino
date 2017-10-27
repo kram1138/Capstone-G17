@@ -84,21 +84,21 @@ void setup()
 // true only if either the two middle sensors detected and the number of
 // lines detected is less
 boolean centered(unsigned int sensors[numOfSensors]){
-  int onLineCount = 0;
-  int sensorCount = 0;
+//  unsigned int time = 0;
+//  time = micros();
+  
   boolean isCentered;
   boolean sensorsOnLine[numOfSensors];
   
-  for (int sensorCount=0; sensorCount < numOfSensors; sensorCount++) {
-    if (sensors[sensorCount] >= minLineFound){
-      sensorsOnLine[sensorCount] = true;
-      onLineCount++;
-    } else {
-      sensorsOnLine[sensorCount] = false;
-    }
-  }
-
-  if (onLineCount < 3 and (sensorsOnLine[2] == true or sensorsOnLine[3] == true)){
+  sensorsOnLine[0] = sensors[0] >= minLineFound ? true : false;
+  sensorsOnLine[1] = sensors[1] >= minLineFound ? true : false;
+  sensorsOnLine[2] = sensors[2] >= minLineFound ? true : false;
+  sensorsOnLine[3] = sensors[3] >= minLineFound ? true : false;
+  sensorsOnLine[4] = sensors[4] >= minLineFound ? true : false;
+  sensorsOnLine[5] = sensors[5] >= minLineFound ? true : false;
+  
+  if (sensorsOnLine[0] == false and sensorsOnLine[1] == false and (sensorsOnLine[2] == true or
+      sensorsOnLine[3] == true) and sensorsOnLine[4] == false and sensorsOnLine[5] == false) {
     isCentered = true;
   } else {
     isCentered = false;
@@ -111,6 +111,9 @@ boolean centered(unsigned int sensors[numOfSensors]){
 //  }
 //  Serial.println();
 
+//  time = micros() - time;
+//  Serial.print("Centered Function Time: ");
+//  Serial.println(time);
   return isCentered;
 }
 
@@ -127,6 +130,9 @@ void loop()
   // ONLY correct direction if the line is not detected from one of the middle
   // sensors or if the two sensors on both end detect a line.
   if (!centered(sensors)) {
+//    unsigned int time = 0;
+//    time = micros();
+    
     // Our "error" is how far we are away from the center of the line, which
     // corresponds to position 2500.
     int error = position - 2500;
@@ -159,7 +165,10 @@ void loop()
       m1Speed = MAX_SPEED;
     if (m2Speed > MAX_SPEED)
       m2Speed = MAX_SPEED;
-  
+
+//    time = micros() - time;
+//    Serial.print("Position Adjustment Time: ");
+//    Serial.println(time);
     motors.setSpeeds(m1Speed, m2Speed);
   } else {
     motors.setSpeeds(MAX_SPEED,MAX_SPEED);
