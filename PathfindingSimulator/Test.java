@@ -2,7 +2,7 @@
 Generic program for testing various things related to our project.
 
 @author Lucas Wiebe-Dembowski
-@since 10/24/2017
+@since 10/26/2017
 */
 
 import java.util.ArrayList;
@@ -11,6 +11,7 @@ import java.util.Arrays;
 import CSVParsing.CSVParsing;
 import MatrixGenerator.MatrixGenerator;
 import GenericCode.Generic;
+import Simulator.Simulator;
 
 public class Test{
 
@@ -19,10 +20,61 @@ public class Test{
 
 	public static void main(String[] args){
 		// testCSVParser("adjMatrix1.csv", "out/adjMatrix1_out.csv");
-		testMatrixGenerator();
+		// testMatrixGenerator();
 		// testPathMatrixFunction();
 		// testMatrixMultiply("matrix2.csv", "matrix3.csv");
+		// testAllPairsShortestPathFunction();
+		testSimulator();
+
 		System.out.println("Done testing.");
+	}
+
+	public static void testSimulator(){
+		int numRooms = 30;
+		int maxDirectionsPerIntersection = 3;
+
+		// ArrayList<ArrayList<Float>> A = MatrixGenerator.randomConnectedAdjMatrix(numRooms, numIntersections, maxDirectionsPerIntersection, false);
+		// ArrayList<ArrayList<Float>> A = CSVParsing.matrixListFromCSV("matrix4.csv");
+		ArrayList<ArrayList<Float>> A = CSVParsing.matrixListFromCSV("matrix6.csv");
+
+		ArrayList<ArrayList<Float>> D = MatrixGenerator.allPairsShortestPaths(A, VERBOSE);
+		if(VERBOSE){
+			System.out.println("Adjacency Matrix:");
+			Generic.printAdjMatrix(A);
+			System.out.println("Distance Matrix:");
+			Generic.printAdjMatrix(D);
+		}
+
+		int nEL = 2000;
+		int nCL = 15000;
+		double initialTemperature = 2.0;
+		double finalTemperature = 0.001;
+		System.out.printf("Testing Simulated Annealing on %d nodes with nEL = %d, nCL = %d, Ti = %f and Tf = %f:\n", A.size(), nEL, nCL, initialTemperature, finalTemperature);
+		
+		int start = 0;
+		int[] soln;
+		float cost;
+		ArrayList<ArrayList<Float>> costs_and_times = new ArrayList<ArrayList<Float>>();
+		long startTime, stop, runtime = 0;
+		int i = 0;
+		// for(nCL = 1000; nCL <= 20000; nCL += 1000){
+		// for(nEL = 1000; nEL <= 20000; nEL += 1000){
+		for(int j = 0; j < 100; j++){
+			startTime = System.nanoTime();
+			soln = Simulator.optimizeSA(D, start, nEL, nCL, initialTemperature, finalTemperature, VERBOSE);
+			stop = System.nanoTime();
+			runtime = stop - startTime; //time in nanoseconds
+			cost = Simulator.cost(D, start, soln);
+			costs_and_times.add(new ArrayList<Float>());
+			costs_and_times.get(i).add((float)runtime / 1000000000.0f);
+			costs_and_times.get(i).add(cost);
+			i++;
+			System.out.printf("nEL = %d. nCL = %d. SOLUTION = %f. Runtime = %fs.\n\n", nEL, nCL, cost, (double)runtime / 1000000000.0);
+		}
+		String outputFile = "out/costsList.csv";
+		System.out.printf("Sending results to %s... ", outputFile);
+		CSVParsing.matrixToCSV(costs_and_times, outputFile);
+		System.out.println(" done.");
 	}
 
 	public static void testMatrixGenerator(){
@@ -84,6 +136,19 @@ public class Test{
 		ArrayList<ArrayList<Float>> m4 = CSVParsing.matrixListFromCSV("matrix4.csv");
 		Generic.printAdjMatrix(m4);
 		ArrayList<ArrayList<Float>> P2 = MatrixGenerator.pathMatrix(m4, VERBOSE);
+		Generic.printAdjMatrix(P2);
+	}
+
+	public static void testAllPairsShortestPathFunction(){
+		//Test a hand-generated one.
+		//Compare to results at https://www-m9.ma.tum.de/graph-algorithms/spp-floyd-warshall/index_en.html
+		//Validated on a 5x5 connected graph and an 8x8 graph with two connected components,
+		//and the 6x6 connected graph in my notebook.
+		ArrayList<ArrayList<Float>> m4 = CSVParsing.matrixListFromCSV("matrix4.csv");
+		Generic.printAdjMatrix(m4);
+		System.out.println("A is " + (MatrixGenerator.isSymmetric(m4, VERBOSE) ? "" : "NOT") + " symmetric.");
+		System.out.println("A is " + (MatrixGenerator.adjMatrixIsConnected(m4, VERBOSE) ? "" : "NOT") + " connected.");
+		ArrayList<ArrayList<Float>> P2 = MatrixGenerator.allPairsShortestPaths(m4, VERBOSE);
 		Generic.printAdjMatrix(P2);
 	}
 }

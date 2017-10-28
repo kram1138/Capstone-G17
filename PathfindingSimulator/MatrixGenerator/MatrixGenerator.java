@@ -146,7 +146,7 @@ public class MatrixGenerator{
 					//search for something that is not 0. Start at the end because randomAdjMatrixNodesList() puts intersections at the beginning
 					if(P.get(0).get(j) > 0){ //vertex j has a path to vertex 0, so I'll connect j to i
 						found = true;
-						x = (float)(Math.random() * 10);
+						x = (float)(Math.random() * 10) + 0.1f;
 						A.get(i).set(j, x);
 						A.get(j).set(i, x);
 						if(verbose){
@@ -163,6 +163,8 @@ public class MatrixGenerator{
 
 	public static ArrayList<ArrayList<Float>> pathMatrix(ArrayList<ArrayList<Float>> A, boolean verbose){
 		/*
+		*** Time permitting, DELETE THIS and use allPairsShortestPaths() instead of this. ***
+
 		Reads adjacency matrix A and returns path matrix P.
 		This uses a slightly modified Warshall's algorithm.
 		
@@ -221,6 +223,42 @@ public class MatrixGenerator{
 			Generic.printMatrix(P);
 		}
 		return result;
+	}
+
+	public static ArrayList<ArrayList<Float>> allPairsShortestPaths(ArrayList<ArrayList<Float>> A, boolean verbose){
+		/*
+		Reads adjacency matrix A and returns distance matrix D.
+		This uses the Floyd Warshall algorithm
+		*/
+		if(!isSquare(A, verbose)){
+			throw new IllegalArgumentException("Floyd-Warshall algorithm undefined for non-square matrix. Dimensions: " + A.size() + "x" + A.get(0).size());
+		}
+		ArrayList<ArrayList<Float>> D = Generic.matrixDeepCopy(A);
+		int n = A.size();
+		//Initialize nonexistant edges to infinity rather than -1 because it makes code for Floyd-Warshall easier.
+		for(int i = 0; i < n; i++){
+			for(int j = 0; j < n; j++){
+				if(D.get(i).get(j) < 0){ D.get(i).set(j, Float.MAX_VALUE); }
+			}
+		}
+		float d;
+		for(int k = 0; k < n; k++){
+			for(int i = 0; i < n; i++){
+				for(int j = 0; j < n; j++){
+					d = D.get(i).get(k) + D.get(k).get(j);
+					if(D.get(i).get(j) > d){
+						D.get(i).set(j, d);
+					}
+				}
+			}
+		}
+		//Put nonexistant edges back to -1 because the rest of this project requires that.
+		for(int i = 0; i < n; i++){
+			for(int j = 0; j < n; j++){
+				if(D.get(i).get(j) == Float.MAX_VALUE){ D.get(i).set(j, -1.0f); }
+			}
+		}
+		return D;
 	}
 
 	public static boolean isSymmetric(ArrayList<ArrayList<Float>> A, boolean verbose){

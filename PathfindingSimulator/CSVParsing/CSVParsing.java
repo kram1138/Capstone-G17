@@ -1,16 +1,18 @@
 /**
 Includes functions for reading a 2D float matrix from a csv file into a 
-2D square Float ArrayList, or printing a 2D Float ArrayList to a csv file.
+2D square Float ArrayList, or printing a 2D Float ArrayList to a csv file,
+or printing a 1-D float list to a file in one column.
 
 Floats were used instead of doubles because the application using this will not need double precision.
 
 @author Lucas Wiebe-Dembowski
-@since 10/13/2017
+@since 10/26/2017
 */
 package CSVParsing;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.List;
 
 public class CSVParsing{
 
@@ -46,7 +48,7 @@ public class CSVParsing{
 		return matrix;
 	}
 
-	public static void matrixToCSV(ArrayList<ArrayList<Float>> matrix, String file){
+	public static <T> void matrixToCSV(ArrayList<ArrayList<T>> matrix, String file){
 		//Print a 2D float matrix to a file. Assume the file is a .csv file.
 		//Prints everything in the matrix, regardless of size.
 		//If a square matrix is required, the calling function must be responsible for ensuring that that is the case.
@@ -64,6 +66,27 @@ public class CSVParsing{
 
 				if(i < matrix.size() - 1){
 					//skip a line after every row of the matrix except for the last one
+					pr.println();
+				}
+			}
+
+			pr.close();
+
+		}catch(IOException e){
+			e.printStackTrace();
+		}		
+	}
+
+	public static void listToFile(List<Float> list, String file){
+		//Print a float list to a file in one column. File can be csv or txt.
+
+		try{
+			PrintWriter pr = new PrintWriter(file);
+			
+			for(int i = 0; i < list.size(); i++){
+				pr.print(list.get(i));
+				if(i < list.size() - 1){
+					//skip a line after every entry of the list except for the last one
 					pr.println();
 				}
 			}
