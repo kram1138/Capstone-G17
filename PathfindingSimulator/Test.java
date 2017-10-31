@@ -2,7 +2,7 @@
 Generic program for testing various things related to our project.
 
 @author Lucas Wiebe-Dembowski
-@since 10/26/2017
+@since 10/30/2017
 */
 
 import java.util.ArrayList;
@@ -46,10 +46,13 @@ public class Test{
 		}
 
 		int nEL = 2000;
-		int nCL = 15000;
+		int nCL = 2000;
 		double initialTemperature = 2.0;
 		double finalTemperature = 0.001;
-		System.out.printf("Testing Simulated Annealing on %d nodes with nEL = %d, nCL = %d, Ti = %f and Tf = %f:\n", A.size(), nEL, nCL, initialTemperature, finalTemperature);
+		// int coolingSchedule = Simulator.ADAPTIVE;
+		int coolingSchedule = Simulator.EXPONENTIAL;
+		System.out.printf("Testing Simulated Annealing on %d nodes with nEL = %d, nCL = %d, Ti = %f and Tf = %f using %s cooling schedule:\n", 
+			A.size(), nEL, nCL, initialTemperature, finalTemperature, Simulator.schedules[coolingSchedule]);
 		
 		int start = 0;
 		int[] soln;
@@ -61,7 +64,8 @@ public class Test{
 		// for(nEL = 1000; nEL <= 20000; nEL += 1000){
 		for(int j = 0; j < 100; j++){
 			startTime = System.nanoTime();
-			soln = Simulator.optimizeSA(D, start, nEL, nCL, initialTemperature, finalTemperature, VERBOSE);
+			// soln = Simulator.optimizeSA(D, start, nEL, nCL, initialTemperature, finalTemperature, coolingSchedule, VERBOSE);
+			soln = Simulator.optimizeSA(D, start, nEL, nCL, initialTemperature, finalTemperature, coolingSchedule, 6, VERBOSE);
 			stop = System.nanoTime();
 			runtime = stop - startTime; //time in nanoseconds
 			cost = Simulator.cost(D, start, soln);
@@ -69,7 +73,7 @@ public class Test{
 			costs_and_times.get(i).add((float)runtime / 1000000000.0f);
 			costs_and_times.get(i).add(cost);
 			i++;
-			System.out.printf("nEL = %d. nCL = %d. SOLUTION = %f. Runtime = %fs.\n\n", nEL, nCL, cost, (double)runtime / 1000000000.0);
+			System.out.printf("nEL = %d. nCL = %d. SOLUTION = %.1f. Runtime = %fs.\n\n", nEL, nCL, cost, (double)runtime / 1000000000.0);
 		}
 		String outputFile = "out/costsList.csv";
 		System.out.printf("Sending results to %s... ", outputFile);

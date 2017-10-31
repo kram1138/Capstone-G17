@@ -2,7 +2,7 @@
 Pathfinding Simulator.
 
 @author Lucas Wiebe-Dembowski
-@since 10/26/2017
+@since 10/30/2017
 */
 package Simulator;
 
@@ -12,14 +12,54 @@ import java.util.Arrays;
 import GenericCode.Generic;
 
 public class Simulator{
-	public static int[] optimizeSA(ArrayList<ArrayList<Float>> distMatrix, int start, int nEL, int nCL, double initialTemperature, double finalTemperature, boolean verbose){
+
+	final public static int LINEAR = 0;
+	final public static int EXPONENTIAL = 1;
+	final public static int ADAPTIVE = 2;
+	final public static String[] schedules = {"linear", "exponential", "adaptive"};
+
+	public static int[] optimizeSA(ArrayList<ArrayList<Float>> distMatrix, 
+									int start, 
+									int nEL, 
+									int nCL, 
+									double initialTemperature, 
+									double finalTemperature, 
+									int coolingSchedule, 
+									int numIterations,
+									boolean verbose)
+	{
+		int n = distMatrix.size();
+		int[] soln = new int[n];
+		int[] bestSoln = new int[n];
+		float cost = Float.MAX_VALUE, best = Float.MAX_VALUE;
+		for(int i = 0; i < numIterations; i++){
+			soln = optimizeSA(distMatrix, start, nEL, nCL, initialTemperature, finalTemperature, coolingSchedule, verbose);
+			cost = cost(distMatrix, start, soln);
+			if(cost < best){
+				best = cost;
+				System.arraycopy(soln, 0, bestSoln, 0, n);
+			}
+		}
+		return bestSoln;
+	}
+
+	public static int[] optimizeSA(ArrayList<ArrayList<Float>> distMatrix, 
+									int start, 
+									int nEL, 
+									int nCL, 
+									double initialTemperature, 
+									double finalTemperature, 
+									int coolingSchedule, 
+									boolean verbose)
+	{
 		//Based mostly on ECE 3790 lab 3
 
 		int r1 = -1, r2 = -1; //random array indices, initialized to different invalid index values
 		int t; //temporary variable
 		int n = distMatrix.size(); //number of nodes in the graph
-		int[] soln = new int[n]; //currently the best solution seen so far
-		float currentCost; //cost of the best solution seen so far
+		int[] soln = new int[n]; //currently the current solution
+		float currentCost; //cost of the current solution
+		float bestCost; //cost of the best solution seen so far
 		int[] temp = new int[n]; //the solution currently being checked
 		float tempCost = -1.0f; //cost of the solution currently being checked
 
@@ -38,18 +78,30 @@ public class Simulator{
 		}
 
 		currentCost = cost(distMatrix, start, soln);
+		bestCost = currentCost;
 
 		float dC; //Change in cost
 		double p; //Probability of choosing a worse solution
 		double dCavg = 0; //average change in cost
 		double currentTemperature = initialTemperature;
-		double dT = (initialTemperature - finalTemperature) / nCL;
+		double a = 1.0; //default is 1.
+		double u = 1.0; //default is 1.
+		double B = 1.05;
+		double x = 0, y = 0;
+		if(coolingSchedule == LINEAR){
+			a = (initialTemperature - finalTemperature) / (double)nCL;
+		}else if(coolingSchedule == EXPONENTIAL){
+			a = Math.pow(finalTemperature/initialTemperature, 1/(double)nCL);
+		}else if(coolingSchedule == ADAPTIVE){
+			a = Math.pow(finalTemperature/initialTemperature, 1/(double)nCL);
+		}
 
 		if(verbose){
 			System.out.printf("Initial solution = %s\n", Arrays.toString(soln));
 			System.out.printf("Initial solution cost = %f\n", currentCost);
+			System.out.printf("Cooling schedule is %s\n", schedules[coolingSchedule] );
 		}
-		for(int x = 0; x < nCL && tempCost != 0 && currentCost != 0; x++){ //cooling loop.
+		for(int zzzz = 0; zzzz < nCL && tempCost != 0 && currentCost != 0; zzzz++){ //cooling loop.
 			dCavg = 0;
 			for(i = 0; i < nEL && currentCost != 0; i++){ //equilibrium loop
 				//Loop until the specified max number of iterations has been reached, or a solution with cost 
@@ -74,6 +126,7 @@ public class Simulator{
 				if(tempCost <= currentCost){
 					System.arraycopy(temp, 1, soln, 1, n-1);
 					currentCost = tempCost;
+					bestCost = currentCost;
 				}else{
 					dC = tempCost - currentCost;
 
@@ -93,7 +146,17 @@ public class Simulator{
 				}
 			}
 
-			currentTemperature -= dT; //linear cooling schedule
+			if(coolingSchedule == LINEAR){
+				currentTemperature -= a;
+			}else if(coolingSchedule == EXPONENTIAL){
+				currentTemperature *= a;
+			}else if(coolingSchedule == ADAPTIVE){
+				x = currentCost - bestCost;
+				y = -Math.log(1-a) / Math.log(B);
+				u = 1 - Math.pow(B, -x - y);
+				currentTemperature *= u;
+			}
+			// System.out.println(currentTemperature);
 		}
 		return soln;
 	}
