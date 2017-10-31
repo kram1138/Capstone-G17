@@ -2,7 +2,7 @@
 Pathfinding Simulator.
 
 @author Lucas Wiebe-Dembowski
-@since 10/30/2017
+@since 10/31/2017
 */
 package Simulator;
 
@@ -28,6 +28,7 @@ public class Simulator{
 									int numIterations,
 									boolean verbose)
 	{
+		//Helper function that calls Simulated Annealing numIterations times and resturns the best of all the obtained solutions.
 		int n = distMatrix.size();
 		int[] soln = new int[n];
 		int[] bestSoln = new int[n];
@@ -144,7 +145,7 @@ public class Simulator{
 						currentCost = tempCost;
 					}
 				}
-			}
+			} //end quilibrium loop
 
 			if(coolingSchedule == LINEAR){
 				currentTemperature -= a;
@@ -157,15 +158,17 @@ public class Simulator{
 				currentTemperature *= u;
 			}
 			// System.out.println(currentTemperature);
-		}
+		} //end cooling loop
 		return soln;
 	}
 
 	public static float cost(ArrayList<ArrayList<Float>> distMatrix, int start, int[] soln){
-		//Calculate the cost of some configuration of the graph by adding the edge weights
-		//between the left and right side.
-		//int[] soln is an array containing the sequence of node numbers representing a solution.
-		//ArrayList<ArrayList<Float>> distMatrix is the all pairs shortest distance matrix of the graph.
+		/*
+		Calculate the cost of some configuration of the graph by adding the edge weights
+		between the left and right side.
+		int[] soln is an array containing the sequence of node numbers representing a solution.
+		ArrayList<ArrayList<Float>> distMatrix is the all pairs shortest distance matrix of the graph.
+		*/
 
 		float result = 0;
 		int n = soln.length;

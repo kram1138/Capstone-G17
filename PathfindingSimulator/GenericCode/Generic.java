@@ -2,7 +2,7 @@
 Generic code not related to anythign specific in the project, and gets used in many places.
 
 @author Lucas Wiebe-Dembowski
-@since 10/24/2017
+@since 10/31/2017
 */
 package GenericCode;
 
@@ -66,47 +66,4 @@ public class Generic{
 		return min + (int)(Math.random() * (max - min));
 	}
 
-	public static ArrayList<ArrayList<Float>> matrixMultiply(ArrayList<ArrayList<Float>> m1, ArrayList<ArrayList<Float>> m2) {
-		/**
-		Matrix-multiply two arrays together.
-		The arrays MUST be rectangular.
-		@author Tom Christiansen & Nathan Torkington, Perl Cookbook version.
-
-		http://www.java2s.com/Code/Java/Collections-Data-Structure/Multiplytwomatrices.htm
-		
-		Modified by Lucas Wiebe-Dembowski on October 20, 2017, to work with ArrayList<ArrayList<Float>> instead of int[][]
-		Note this returns the product m1*m2, NOT m2*m1
-
-		Yes, I know multiplying symmetric matrices can probably be done faster than this generic algorithm can do, 
-		but I don't care. Performance gain not worth effort.
-		*/
-		int m1rows = m1.size();
-		int m1cols = m1.get(0).size(); //Author didn't mention that this is where the code fails if the matrices are not rectangular
-		int m2rows = m2.size();
-		int m2cols = m2.get(0).size(); //Author didn't mention that this is where the code fails if the matrices are not rectangular
-		if (m1cols != m2rows){
-		 	throw new IllegalArgumentException("matrices don't match: " + m1cols + " != " + m2rows);
-		}
-
-		//Initialize a 0-matrix with dimensions m1rows X m2cols
-		ArrayList<ArrayList<Float>> result = new ArrayList<ArrayList<Float>>();
-		Float[] blankArray = new Float[m2cols]; //Need Float, not float. ArrayList requires boxed primitives.
-		Arrays.fill(blankArray, 0.0f);
-		for(int i = 0; i < m1rows; i++){
-			result.add(new ArrayList<Float>(Arrays.asList(blankArray))); //add row to the matrix
-		}
-
-		//multiply m1*m2
-		float x; //used for unboxing Float to float
-		for (int i=0; i<m1rows; i++){
-		 	for (int j=0; j<m2cols; j++){
-		   		for (int k=0; k<m1cols; k++){
-		   			x = result.get(i).get(j) + m1.get(i).get(k) * m2.get(k).get(j);
-		   			result.get(i).set(j, x);
-		   		}
-		 	}
-		}
-
-		return result;
-	}
 }

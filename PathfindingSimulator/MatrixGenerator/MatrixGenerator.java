@@ -3,7 +3,7 @@ Includes functions for generating random adjacency matrices, stored as 2D Float 
 representing the graph of a building with n rooms.
 
 @author Lucas Wiebe-Dembowski
-@since 10/25/2017
+@since 10/31/2017
 */
 package MatrixGenerator;
 
@@ -29,6 +29,8 @@ public class MatrixGenerator{
 
 		An intersection node is connected to maxDirectionsPerIntersection other nodes.
 		A room node is connected to 2 other nodes.
+
+		This function sometimes returns graphs that are not connected. Use makeConnected() on the returned matrix in order to ensure it is connected.
 		*/
 
 		int numNodes = numIntersections + numRooms;
@@ -84,7 +86,6 @@ public class MatrixGenerator{
 
 		int[] capacities = new int[numNodes]; //Entry i of capacities is the max number of nodes that can be connected to node i
 		for(i = 0; i < numNodes; i++){ //assume nodes 0 up to numIntersections-1 are intersections
-			// capacities[i] = i < numIntersections ? maxDirectionsPerIntersection : 2;
 			if(i < numIntersections){ //It is an intersection node
 				n = maxDirectionsPerIntersection;
 			}else if(Math.random() < roomNodeProbability){ //It is a room node, in the middle of a hallway
@@ -229,6 +230,9 @@ public class MatrixGenerator{
 		/*
 		Reads adjacency matrix A and returns distance matrix D.
 		This uses the Floyd Warshall algorithm
+
+		Assume Input matrix A contains -1 entries to represent nonexistant edges.
+		Returned table will also have -1 entries representing nonexistant edges.
 		*/
 		if(!isSquare(A, verbose)){
 			throw new IllegalArgumentException("Floyd-Warshall algorithm undefined for non-square matrix. Dimensions: " + A.size() + "x" + A.get(0).size());

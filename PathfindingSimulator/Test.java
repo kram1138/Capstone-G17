@@ -2,7 +2,7 @@
 Generic program for testing various things related to our project.
 
 @author Lucas Wiebe-Dembowski
-@since 10/30/2017
+@since 10/31/2017
 */
 
 import java.util.ArrayList;
@@ -49,8 +49,8 @@ public class Test{
 		int nCL = 2000;
 		double initialTemperature = 2.0;
 		double finalTemperature = 0.001;
-		// int coolingSchedule = Simulator.ADAPTIVE;
 		int coolingSchedule = Simulator.EXPONENTIAL;
+
 		System.out.printf("Testing Simulated Annealing on %d nodes with nEL = %d, nCL = %d, Ti = %f and Tf = %f using %s cooling schedule:\n", 
 			A.size(), nEL, nCL, initialTemperature, finalTemperature, Simulator.schedules[coolingSchedule]);
 		
@@ -60,12 +60,10 @@ public class Test{
 		ArrayList<ArrayList<Float>> costs_and_times = new ArrayList<ArrayList<Float>>();
 		long startTime, stop, runtime = 0;
 		int i = 0;
-		// for(nCL = 1000; nCL <= 20000; nCL += 1000){
-		// for(nEL = 1000; nEL <= 20000; nEL += 1000){
 		for(int j = 0; j < 100; j++){
 			startTime = System.nanoTime();
-			// soln = Simulator.optimizeSA(D, start, nEL, nCL, initialTemperature, finalTemperature, coolingSchedule, VERBOSE);
-			soln = Simulator.optimizeSA(D, start, nEL, nCL, initialTemperature, finalTemperature, coolingSchedule, 6, VERBOSE);
+			int numIterations = 6;
+			soln = Simulator.optimizeSA(D, start, nEL, nCL, initialTemperature, finalTemperature, coolingSchedule, numIterations, VERBOSE);
 			stop = System.nanoTime();
 			runtime = stop - startTime; //time in nanoseconds
 			cost = Simulator.cost(D, start, soln);
@@ -106,23 +104,11 @@ public class Test{
 		System.out.println("A is " + (MatrixGenerator.adjMatrixIsConnected(A, VERBOSE) ? "" : "NOT") + " connected.");
 	}
 
-	public static void testCSVParser(){ testCSVParser("adjMatrix1.csv", "out/adjMatrix1_out.csv"); }
 	public static void testCSVParser(String inputFile, String outputFile){
 		ArrayList<ArrayList<Float>> B = CSVParsing.matrixListFromCSV(inputFile);
 		Generic.printAdjMatrix(B);
 		CSVParsing.matrixToCSV(B, outputFile);
 		System.out.println("B is " + (MatrixGenerator.isSymmetric(B, VERBOSE) ? "" : "NOT") + " symmetric.");
-	}
-
-	public static void testMatrixMultiply(String inputFile1, String inputFile2){
-		/*
-		Test cases validated: 3x3 * 3x3, 4x4 * 4x4, 4x4 * 4x5, 4x5 * 4x4, 4x4 * 4x1
-		*/
-		ArrayList<ArrayList<Float>> m1 = CSVParsing.matrixListFromCSV(inputFile1);
-		ArrayList<ArrayList<Float>> m2 = CSVParsing.matrixListFromCSV(inputFile2);
-		Generic.printAdjMatrix(m1);
-		Generic.printAdjMatrix(m2);
-		Generic.printAdjMatrix(Generic.matrixMultiply(m1, m2));
 	}
 
 	public static void testPathMatrixFunction(){
@@ -144,7 +130,7 @@ public class Test{
 	}
 
 	public static void testAllPairsShortestPathFunction(){
-		//Test a hand-generated one.
+		//Test a hand-generated graph.
 		//Compare to results at https://www-m9.ma.tum.de/graph-algorithms/spp-floyd-warshall/index_en.html
 		//Validated on a 5x5 connected graph and an 8x8 graph with two connected components,
 		//and the 6x6 connected graph in my notebook.
