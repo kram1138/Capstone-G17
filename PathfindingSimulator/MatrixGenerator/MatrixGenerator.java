@@ -13,6 +13,17 @@ import java.util.Arrays;
 import GenericCode.Generic;
 
 public class MatrixGenerator{
+	public static ArrayList<ArrayList<Float>> binaryMatrix(ArrayList<ArrayList<Float>> A){
+		//Take input matrix A, replace positive values with 1, all other values with 0, return result.
+		ArrayList<ArrayList<Float>> B = Generic.matrixDeepCopy(A);
+		for(int i = 0; i < A.size(); i++){
+			for(int j = 0; j < A.get(i).size(); j++){
+				B.get(i).set(j, A.get(i).get(j) > 0 ? 1.0f : 0.0f);
+			}
+		}
+		return B;
+	}
+
 	public static ArrayList<ArrayList<Float>> randomConnectedAdjMatrix(int numRooms, int numIntersections, int maxDirectionsPerIntersection, boolean verbose){
 		ArrayList<ArrayList<Float>> A = randomAdjMatrix(numRooms, numIntersections, maxDirectionsPerIntersection, verbose);
 		makeConnected(A, numIntersections, verbose);

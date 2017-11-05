@@ -16,15 +16,15 @@ import Simulator.Simulator;
 public class Test{
 
 	final static boolean VERBOSE = false;
-	final static int numIntersections = 4;
+	final static int numIntersections = 3;
 
 	public static void main(String[] args){
 		// testCSVParser("adjMatrix1.csv", "out/adjMatrix1_out.csv");
-		// testMatrixGenerator();
+		testMatrixGenerator();
 		// testPathMatrixFunction();
 		// testMatrixMultiply("matrix2.csv", "matrix3.csv");
 		// testAllPairsShortestPathFunction();
-		testSimulator();
+		// testSimulator();
 
 		System.out.println("Done testing.");
 	}
@@ -80,11 +80,12 @@ public class Test{
 	}
 
 	public static void testMatrixGenerator(){
-		int numRooms = 30;
+		int numRooms = 8;
 		int maxDirectionsPerIntersection = 3;
 		ArrayList<ArrayList<Float>> A = MatrixGenerator.randomConnectedAdjMatrix(numRooms, numIntersections, maxDirectionsPerIntersection, VERBOSE);
 		System.out.println("Randomly generated adjacency matrix:");
 		Generic.printAdjMatrix(A);
+		Generic.printAdjMatrix(MatrixGenerator.binaryMatrix(A));
 		System.out.println("A is " + (MatrixGenerator.isSymmetric(A, VERBOSE) ? "" : "NOT") + " symmetric.");
 		System.out.println("A is " + (MatrixGenerator.adjMatrixIsConnected(A, VERBOSE) ? "" : "NOT") + " connected.");
 	}
