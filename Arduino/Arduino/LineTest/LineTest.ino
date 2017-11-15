@@ -17,8 +17,10 @@
 #include <ZumoMotors.h>
 #include <ZumoBuzzer.h>
 #include <Pushbutton.h>
+#include <SoftwareSerial.h>
 
 
+SoftwareSerial mySerial(0,1);
 ZumoBuzzer buzzer;
 ZumoReflectanceSensorArray reflectanceSensors;
 ZumoMotors motors;
