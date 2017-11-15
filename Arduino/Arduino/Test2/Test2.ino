@@ -52,64 +52,24 @@
 Pushbutton button(ZUMO_BUTTON); // pushbutton on pin 12
 
 // Accelerometer Settings
-#define RA_SIZE 3  // number of readings to include in running average of accelerometer readings
-#define XY_ACCELERATION_THRESHOLD 2400  // for detection of contact (~16000 = magnitude of acceleration due to gravity)
+#define RA_SIZE 3                       // number of readings to include in running average of accelerometer readings
+#define XY_ACCELERATION_THRESHOLD 2000  // for detection of contact (~16000 = magnitude of acceleration due to gravity)
 
 // Reflectance Sensor Settings
 #define NUM_SENSORS 6
 unsigned int sensor_values[NUM_SENSORS];
 // this might need to be tuned for different lighting conditions, surfaces, etc.
-#define QTR_THRESHOLD  1500 // microseconds
+#define QTR_THRESHOLD  1600 // microseconds
 ZumoReflectanceSensorArray sensors(QTR_NO_EMITTER_PIN); 
 
 // Motor Settings
 ZumoMotors motors;
 
-//**************************************************************************
-void moveForward(int speed){
-  motors.setLeftSpeed(speed);
-  motors.setRightSpeed(speed);
-}
-
-void moveBackwards(int speed){
-  motors.setLeftSpeed(-speed);
-  motors.setRightSpeed(-speed);
-}
-
-void moveRight(int speed){
-  motors.setLeftSpeed(speed);
-  motors.setRightSpeed(-speed);
-}
-
-void moveLeft(int speed){
-  motors.setLeftSpeed(-speed);
-  motors.setRightSpeed(speed);
-}
-
-void moveSTOP(){
-  motors.setLeftSpeed(0);
-  motors.setRightSpeed(0);
-  
-}
-
-void turn90Right(){
-  moveRight(200);
-  delay(340);
-  moveSTOP();
-}
-
-void turn90Left(){
-  moveLeft(200);
-  delay(340);
-  moveSTOP();
-}
-//****************************************************************************
-
-
 // these might need to be tuned for different motor types
 #define REVERSE_SPEED     200 // 0 is stopped, 400 is full speed
 #define TURN_SPEED        200
-#define SEARCH_SPEED      200
+#define SEARCH_SPEED      300
+#define FULL_STOP           0
 #define SUSTAINED_SPEED   400 // switches to SUSTAINED_SPEED from FULL_SPEED after FULL_SPEED_DURATION_LIMIT ms
 #define FULL_SPEED        400
 #define STOP_DURATION     100 // ms
@@ -119,15 +79,12 @@ void turn90Left(){
 #define RIGHT 1
 #define LEFT -1
 
-enum ForwardSpeed { SearchSpeed, SustainedSpeed, FullSpeed };
+enum ForwardSpeed { FullStop, SearchSpeed, SustainedSpeed, FullSpeed };
 ForwardSpeed _forwardSpeed;  // current forward speed setting
 unsigned long full_speed_start_time;
 #define FULL_SPEED_DURATION_LIMIT     250  // ms
 
-// Sound Effects
 ZumoBuzzer buzzer;
-const char sound_effect[] PROGMEM = "O4 T100 V15 L4 MS g12>c12>e12>G6>E12 ML>G2"; // "charge" melody
- // use V0 to suppress sound effect; v15 for max volume
  
  // Timing
 unsigned long loop_start_time;
@@ -211,12 +168,8 @@ void setup()
 
   randomSeed((unsigned int) millis());
   
-  // uncomment if necessary to correct motor directions
-  //motors.flipLeftMotor(true);
-  //motors.flipRightMotor(true);
 
   pinMode(LED, HIGH);
-  buzzer.playMode(PLAY_AUTOMATIC);
   waitForButtonAndCountDown(false);
 }
 
@@ -231,16 +184,6 @@ void waitForButtonAndCountDown(bool restarting)
   button.waitForButton();
   digitalWrite(LED, LOW);
    
-  // play audible countdown
-  for (int i = 0; i < 3; i++)
-  {
-    delay(1000);
-    buzzer.playNote(NOTE_G(3), 50, 12);
-  }
-  delay(1000);
-  buzzer.playFromProgramSpace(sound_effect);
-  delay(1000);
-  
   // reset loop variables
   in_contact = false;  // 1 if contact made; 0 if no contact or contact lost
   contact_made_time = 0;
@@ -252,27 +195,31 @@ void waitForButtonAndCountDown(bool restarting)
 void loop()
 {
   if (button.isPressed())
-  {
-    // if button is pressed, stop and wait for another press to go again
-    motors.setSpeeds(0, 0);
-    button.waitForRelease();
-    waitForButtonAndCountDown(true);
-  }
+    {
+      // if button is pressed, stop and wait for another press to go again
+      motors.setSpeeds(0, 0);
+      button.waitForRelease();
+      waitForButtonAndCountDown(true);
+    }
   
   loop_start_time = millis();
   lsm303.readAcceleration(loop_start_time); 
   sensors.read(sensor_values);
+
+
   
   if ((_forwardSpeed == FullSpeed) && (loop_start_time - full_speed_start_time > FULL_SPEED_DURATION_LIMIT))
-  { 
-    moveForward(400);
-  }
+    { 
+      setForwardSpeed(SustainedSpeed);
+    }
   
-  else  // otherwise, go straight
-  {
-    if (check_for_contact()) on_contact_made();
-    moveBackwards(100);
-  }
+      if (check_for_contact())
+        {
+          on_contact_made();
+        }
+      int speed = getForwardSpeed();
+      motors.setSpeeds(speed, speed);
+  
 }
 
 // execute turn 
@@ -312,6 +259,9 @@ int getForwardSpeed()
   int speed;
   switch (_forwardSpeed)
   {
+    case FullStop:
+      speed = FULL_STOP;
+      break;
     case FullSpeed:
       speed = FULL_SPEED;
       break;
@@ -343,8 +293,11 @@ void on_contact_made()
 #endif
   in_contact = true;
   contact_made_time = loop_start_time;
-  setForwardSpeed(FullSpeed);
-  buzzer.playFromProgramSpace(sound_effect);
+  setForwardSpeed(FullStop);
+  delay(200);
+  changeDirection();
+  resetVariables();
+  
 }
 
 // reset forward speed
@@ -508,3 +461,60 @@ void RunningAverage<T>::fillValue(T value, int number)
     addValue(value);
   }
 }
+
+void moveForward(int speed){
+  motors.setLeftSpeed(speed);
+  motors.setRightSpeed(speed);
+}
+
+void moveBackward(int speed){
+  motors.setLeftSpeed(-speed);
+  motors.setRightSpeed(-speed);
+}
+
+void moveRight(int speed){
+  motors.setLeftSpeed(speed);
+  motors.setRightSpeed(-speed);
+}
+
+void moveLeft(int speed){
+  motors.setLeftSpeed(-speed);
+  motors.setRightSpeed(speed);
+}
+
+void moveStop(){
+  motors.setLeftSpeed(0);
+  motors.setRightSpeed(0);
+  
+}
+
+void turn90Right(){
+  moveRight(200);
+  delay(330);
+  moveStop();
+}
+
+void turn90Left(){
+  moveLeft(200);
+  delay(330);
+  moveStop();
+}
+
+void changeDirection(){
+  int num1 = rand() % 1000;
+  moveBackward(200);
+  delay(200);
+  moveRight(200);
+  delay(num1);
+  
+}
+
+
+void resetVariables(){
+  in_contact = false;  // 1 if contact made; 0 if no contact or contact lost
+  contact_made_time = 0;
+  last_turn_time = millis();  // prevents false contact detection on initial acceleration
+  _forwardSpeed = SearchSpeed;
+  full_speed_start_time = 0;
+}
+
