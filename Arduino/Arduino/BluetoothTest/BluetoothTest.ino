@@ -6,7 +6,8 @@ int BluetoothData; // the data given from Computer
 
 void setup() {
   mySerial.begin(9600);
-  mySerial.println("Bluetooth Connected:\nPress 1 or 0 to turn on or off LED");
+  mySerial.println("Bluetooth Connected:");
+  mySerial.println("Press 1 or 0 to turn on or off the LED!");
   pinMode(ledpin,OUTPUT);
 }
 
