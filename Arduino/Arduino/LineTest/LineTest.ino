@@ -144,7 +144,7 @@ void loop()
     // You probably want to use trial and error to tune these constants for
     // your particular Zumo and line course.
     int speedDifference = error / 4 + 6 * (error - lastError);
-  
+    Serial.println(speedDifference);
     lastError = error;
   
     // Get individual motor speeds.  The sign of speedDifference
