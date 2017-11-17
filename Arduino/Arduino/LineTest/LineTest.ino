@@ -1,17 +1,3 @@
-/*
- * Demo line-following code for the Pololu Zumo Robot
- *
- * This code will follow a black line on a white background, using a
- * PID-based algorithm.  It works decently on courses with smooth, 6"
- * radius curves and has been tested with Zumos using 30:1 HP and
- * 75:1 HP motors.  Modifications might be required for it to work
- * well on different courses or with different motors.
- *
- * http://www.pololu.com/catalog/product/2506
- * http://www.pololu.com
- * http://forum.pololu.com
- */
-
 #include <QTRSensors.h>
 #include <ZumoReflectanceSensorArray.h>
 #include <ZumoMotors.h>
@@ -124,7 +110,7 @@ boolean centered(unsigned int sensors[NUM_OF_SENSORS]){
   return isCentered;
 }
 
-String readStringFromBluetooth() {
+String readCmdFromBluetooth() {
   String bData = "";
   char temp;
   int readCount = -1;
@@ -163,7 +149,7 @@ void loop()
 
   if ((millis() - lastTime) > delayTime) {
     // read incoming string
-    bData = readStringFromBluetooth();
+    bData = readCmdFromBluetooth();
 
     if (bData.length() > 0) {
       if (bData == "pos"){
