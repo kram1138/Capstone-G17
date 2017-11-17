@@ -15,28 +15,33 @@
 #include <QTRSensors.h>
 #include <ZumoReflectanceSensorArray.h>
 #include <ZumoMotors.h>
-#include <ZumoBuzzer.h>
+//#include <ZumoBuzzer.h>
 #include <Pushbutton.h>
 #include <SoftwareSerial.h>
 
 
-SoftwareSerial mySerial(0,1);
-ZumoBuzzer buzzer;
+SoftwareSerial mySerial(0,1);// set bluetooth serial communication
+//ZumoBuzzer buzzer;
 ZumoReflectanceSensorArray reflectanceSensors;
 ZumoMotors motors;
 Pushbutton button(ZUMO_BUTTON);
+
+
+const int MAX_SPEED = 150;// max allowed speed for the motors to turn. Top speed is 400.
+const int MIN_LINE_FOUND = 750;// min value from refletance sensor to confirm line is found
+const int NUM_OF_SENSORS = 6;// number of reflectance sensors
+const int PRINT_STR_BUFFER = 128;// print string buffer size
+
+char printStr[PRINT_STR_BUFFER];
+int m1Speed = 0;
+int m2Speed = 0;
 int lastError = 0;
-const int numOfSensors = 6;
-const int minLineFound = 750;
-
-// This is the maximum speed the motors will be allowed to turn.
-// (400 lets the motors go at top speed; decrease to impose a speed limit)
-const int MAX_SPEED = 150;
-
+int max_speed = MAX_SPEED;
 
 void setup()
 {
-  Serial.begin(9600);
+  mySerial.begin(9600);
+  mySerial.println("Bluetooth Communication Established!");
   // Play a little welcome song
 //  buzzer.play(">g32>>c32");
 
@@ -85,19 +90,19 @@ void setup()
 // inputs value false. It then sets the isCentered boolean variable to 
 // true only if either the two middle sensors detected and the number of
 // lines detected is less
-boolean centered(unsigned int sensors[numOfSensors]){
+boolean centered(unsigned int sensors[NUM_OF_SENSORS]){
 //  unsigned int time = 0;
 //  time = micros();
   
   boolean isCentered;
-  boolean sensorsOnLine[numOfSensors];
+  boolean sensorsOnLine[NUM_OF_SENSORS];
   
-  sensorsOnLine[0] = sensors[0] >= minLineFound ? true : false;
-  sensorsOnLine[1] = sensors[1] >= minLineFound ? true : false;
-  sensorsOnLine[2] = sensors[2] >= minLineFound ? true : false;
-  sensorsOnLine[3] = sensors[3] >= minLineFound ? true : false;
-  sensorsOnLine[4] = sensors[4] >= minLineFound ? true : false;
-  sensorsOnLine[5] = sensors[5] >= minLineFound ? true : false;
+  sensorsOnLine[0] = sensors[0] >= MIN_LINE_FOUND ? true : false;
+  sensorsOnLine[1] = sensors[1] >= MIN_LINE_FOUND ? true : false;
+  sensorsOnLine[2] = sensors[2] >= MIN_LINE_FOUND ? true : false;
+  sensorsOnLine[3] = sensors[3] >= MIN_LINE_FOUND ? true : false;
+  sensorsOnLine[4] = sensors[4] >= MIN_LINE_FOUND ? true : false;
+  sensorsOnLine[5] = sensors[5] >= MIN_LINE_FOUND ? true : false;
   
   if (sensorsOnLine[0] == false and sensorsOnLine[1] == false and (sensorsOnLine[2] == true or
       sensorsOnLine[3] == true) and sensorsOnLine[4] == false and sensorsOnLine[5] == false) {
@@ -106,28 +111,82 @@ boolean centered(unsigned int sensors[numOfSensors]){
     isCentered = false;
   }
 
-//  Serial.print(" "); Serial.print(isCentered); Serial.print(" | ");
+//  mySerial.print(" "); mySerial.print(isCentered); mySerial.print(" | ");
 //  for(int i=0; i< 6; i++) {
-//    Serial.print(sensors[i]);
-//    Serial.print(",");
+//    mySerial.print(sensors[i]);
+//    mySerial.print(",");
 //  }
-//  Serial.println();
+//  mySerial.println();
 
 //  time = micros() - time;
-//  Serial.print("Centered Function Time: ");
-//  Serial.println(time);
+//  snprintf(printStr,PRINT_STR_BUFFER,"Centered Function Time: %d",time);
+//  mySerial.print(printStr);
   return isCentered;
+}
+
+String readStringFromBluetooth() {
+  String bData = "";
+  char temp;
+  int readCount = -1;
+  
+  while (mySerial.available()) {
+    temp = mySerial.read();//gets one byte from serial buffer
+    if (temp == 0x0D) {
+      break;
+    }//breaks out of capture loop when enter is pressed
+    
+    bData += temp;
+    
+    delay(300);//small delay to allow input buffer to fill
+  }//makes the string bData  
+
+  if (bData != "") {
+    bData.trim();
+    snprintf(printStr,PRINT_STR_BUFFER,"\nbData: %s",bData.c_str());
+    mySerial.println(printStr);
+//    mySerial.println(); mySerial.print("bData: "); mySerial.print(bData); mySerial.println();
+  }
+  return bData;
 }
 
 void loop()
 {
-  unsigned int sensors[numOfSensors];
+  const int delayTime = 500;
+  String bData;
+  unsigned long lastTime = 0;
+  unsigned int sensors[NUM_OF_SENSORS];
 
   // Get the position of the line.  Note that we *must* provide the "sensors"
   // argument to readLine() here, even though we are not interested in the
   // individual sensor readings
   int position = reflectanceSensors.readLine(sensors);
-//  Serial.print(position);
+
+  if ((millis() - lastTime) > delayTime) {
+    // read incoming string
+    bData = readStringFromBluetooth();
+
+    if (bData.length() > 0) {
+      if (bData == "pos"){
+        snprintf(printStr,PRINT_STR_BUFFER,"position: %d",position);
+        mySerial.println(printStr);
+      } else if (bData == "speed"){
+        snprintf(printStr,PRINT_STR_BUFFER,"m1Speed: %d; m2Speed: %d",m1Speed,m2Speed);
+        mySerial.println(printStr);
+      } else if (bData == "stop") {
+        mySerial.println("Stopping...");
+        max_speed = 0;
+        motors.setSpeeds(max_speed, max_speed);
+      } else if (bData == "start") {
+        mySerial.println("Starting...");
+        max_speed = MAX_SPEED;
+        motors.setSpeeds(max_speed, max_speed);
+      } else {
+        snprintf(printStr,PRINT_STR_BUFFER,"Invalid Command: %s",bData.c_str());
+        mySerial.println(printStr);
+      }
+    }
+    lastTime = millis();
+  }
 
   // ONLY correct direction if the line is not detected from one of the middle
   // sensors or if the two sensors on both end detect a line.
@@ -146,33 +205,33 @@ void loop()
     // You probably want to use trial and error to tune these constants for
     // your particular Zumo and line course.
     int speedDifference = error / 4 + 6 * (error - lastError);
-    Serial.println(speedDifference);
+//    mySerial.println(speedDifference);
     lastError = error;
   
     // Get individual motor speeds.  The sign of speedDifference
     // determines if the robot turns left or right.
-    int m1Speed = MAX_SPEED + speedDifference;
-    int m2Speed = MAX_SPEED - speedDifference;
+    m1Speed = max_speed + speedDifference;
+    m2Speed = max_speed - speedDifference;
   
-    // Here we constrain our motor speeds to be between 0 and MAX_SPEED.
-    // Generally speaking, one motor will always be turning at MAX_SPEED
-    // and the other will be at MAX_SPEED-|speedDifference| if that is positive,
+    // Here we constrain our motor speeds to be between 0 and max_speed.
+    // Generally speaking, one motor will always be turning at max_speed
+    // and the other will be at max_speed-|speedDifference| if that is positive,
     // else it will be stationary.  For some applications, you might want to
     // allow the motor speed to go negative so that it can spin in reverse.
     if (m1Speed < 0)
       m1Speed = 0;
     if (m2Speed < 0)
       m2Speed = 0;
-    if (m1Speed > MAX_SPEED)
-      m1Speed = MAX_SPEED;
-    if (m2Speed > MAX_SPEED)
-      m2Speed = MAX_SPEED;
+    if (m1Speed > max_speed)
+      m1Speed = max_speed;
+    if (m2Speed > max_speed)
+      m2Speed = max_speed;
 
 //    time = micros() - time;
-//    Serial.print("Position Adjustment Time: ");
-//    Serial.println(time);
+//    snprintf(printStr,PRINT_STR_BUFFER,"Position Adjustment Time: %d",time);
+//    mySerial.print(printStr);
     motors.setSpeeds(m1Speed, m2Speed);
   } else {
-    motors.setSpeeds(MAX_SPEED,MAX_SPEED);
+    motors.setSpeeds(max_speed,max_speed);
   }
 }
