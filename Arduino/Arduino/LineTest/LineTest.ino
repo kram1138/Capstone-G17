@@ -18,15 +18,17 @@ const int MIN_LINE_FOUND = 750;// min value from refletance sensor to confirm li
 const int NUM_OF_SENSORS = 6;// number of reflectance sensors
 const int PRINT_STR_BUFFER = 128;// print string buffer size
 
+boolean incCmd = false;// variable keeps track if full command is read or not
 char printStr[PRINT_STR_BUFFER];
 int m1Speed = 0;
 int m2Speed = 0;
 int lastError = 0;
 int max_speed = MAX_SPEED;
+String bData = "";
 
 void setup()
 {
-  mySerial.begin(9600);
+  mySerial.begin(9600);// set bluetooth serial baud rate of 9600
   mySerial.println("Bluetooth Communication Established!");
   // Play a little welcome song
 //  buzzer.play(">g32>>c32");
@@ -82,14 +84,17 @@ boolean centered(unsigned int sensors[NUM_OF_SENSORS]){
   
   boolean isCentered;
   boolean sensorsOnLine[NUM_OF_SENSORS];
-  
+
+  // fill boolean reflectance sensor array according to if line is found
   sensorsOnLine[0] = sensors[0] >= MIN_LINE_FOUND ? true : false;
   sensorsOnLine[1] = sensors[1] >= MIN_LINE_FOUND ? true : false;
   sensorsOnLine[2] = sensors[2] >= MIN_LINE_FOUND ? true : false;
   sensorsOnLine[3] = sensors[3] >= MIN_LINE_FOUND ? true : false;
   sensorsOnLine[4] = sensors[4] >= MIN_LINE_FOUND ? true : false;
   sensorsOnLine[5] = sensors[5] >= MIN_LINE_FOUND ? true : false;
-  
+
+  // if only either the middle two sensors detect the line then isCentered is set to true,
+  // othwerwise it will be set to false
   if (sensorsOnLine[0] == false and sensorsOnLine[1] == false and (sensorsOnLine[2] == true or
       sensorsOnLine[3] == true) and sensorsOnLine[4] == false and sensorsOnLine[5] == false) {
     isCentered = true;
@@ -110,29 +115,39 @@ boolean centered(unsigned int sensors[NUM_OF_SENSORS]){
   return isCentered;
 }
 
+// This method reads each character from the bluetooth serial every 300ms
+// while there are bytes available in input buffer or "enter" (0x0D) is 
+// read. It stores the characters read in String called bData which gets
+// returned after it is trimmed and printed to bluetooth serial.
 String readCmdFromBluetooth() {
-  String bData = "";
+//  String bData = "";
   char temp;
-  int readCount = -1;
+
+  if (!incCmd) {
+    bData = "";
+    incCmd = true;
+  }
   
-  while (mySerial.available()) {
+  while (mySerial.available() > 0) {
     temp = mySerial.read();//gets one byte from serial buffer
-    if (temp == 0x0D) {
+    if (temp == 0x0D) {// full command received after "enter" (0x0D) is read
+      incCmd = false;
       break;
     }//breaks out of capture loop when enter is pressed
     
     bData += temp;
     
-    delay(300);//small delay to allow input buffer to fill
+    delay(10);//small delay to allow input buffer to fill
   }//makes the string bData  
 
-  if (bData != "") {
+  if (bData != "" and !incCmd) {
     bData.trim();
     snprintf(printStr,PRINT_STR_BUFFER,"\nbData: %s",bData.c_str());
     mySerial.println(printStr);
-//    mySerial.println(); mySerial.print("bData: "); mySerial.print(bData); mySerial.println();
-  }
-  return bData;
+    return bData;
+  } else {
+    return (String)"";
+  }  
 }
 
 void loop()
@@ -147,12 +162,15 @@ void loop()
   // individual sensor readings
   int position = reflectanceSensors.readLine(sensors);
 
+  // Get string from bluetooth serial every delayTime in ms and compare it to
+  // "pos", "speed", "start" and "stop" commands. Then execute that specific
+  // part of code otherwise write invalid command to bluetooth serial.
   if ((millis() - lastTime) > delayTime) {
     // read incoming string
     bData = readCmdFromBluetooth();
 
     if (bData.length() > 0) {
-      if (bData == "pos"){
+      if (bData == "pos"){// 
         snprintf(printStr,PRINT_STR_BUFFER,"position: %d",position);
         mySerial.println(printStr);
       } else if (bData == "speed"){
