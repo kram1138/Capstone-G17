@@ -23,7 +23,7 @@ char printStr[PRINT_STR_BUFFER];
 int m1Speed = 0;
 int m2Speed = 0;
 int lastError = 0;
-int max_speed = MAX_SPEED;
+int max_speed = 0;
 String bData = "";
 
 void setup()
