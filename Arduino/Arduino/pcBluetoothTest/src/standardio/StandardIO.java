@@ -2,6 +2,9 @@ package standardio;
 
 import java.io.*;
 
+/**
+ * @author Lucas Wiebe-Dembowski
+ */
 public class StandardIO implements Runnable, userinterface.UserInterface {
 
     BufferedReader console = null;

@@ -2,24 +2,20 @@ package serialcom;
 
 import jssc.SerialPort;
 import jssc.SerialPortException;
+import jssc.SerialPortList;
 
 /**
- *
  * @author Lucas Wiebe-Dembowski
  */
 public final class SerialCom {
     
-    private SerialPort serialPort;
+    private final SerialPort serialPort;
     
-    private final byte STOP = (byte)0x17;
-    public byte getSTOPCode(){ return STOP; }
+//    private String STOP = Integer.toString(0x17);
+    public String STOP = "\r\n";
     
-    public SerialCom(){
-        this("COM6");
-    }
     public SerialCom(String portName){
         serialPort = new SerialPort(portName);
-//        open();
     }
     
     public boolean isOpened(){
@@ -54,7 +50,7 @@ public final class SerialCom {
     public void writeBytes(String message){
         try {
             serialPort.writeBytes(message.getBytes());
-            serialPort.writeByte(STOP);
+            serialPort.writeBytes(STOP.getBytes());
         } catch (SerialPortException ex) {
             System.out.println(ex);
         }
@@ -66,5 +62,18 @@ public final class SerialCom {
         } catch (SerialPortException ex) {
             System.out.println(ex);
         }
+    }
+    
+    public String listPorts(){
+        String result = "";
+        String[] portNames = SerialPortList.getPortNames();
+        for (String port : portNames) {
+            result += port + ", ";
+        }
+        return result;
+    }
+    
+    public String getPortName(){
+        return serialPort.getPortName();
     }
 }
