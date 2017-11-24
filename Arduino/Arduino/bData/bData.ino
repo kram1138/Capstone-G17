@@ -4,7 +4,7 @@ SoftwareSerial mySerial(0, 1); // RX, TX
 String readString;
 
 void setup() {
-  mySerial.begin(9600);
+  mySerial.begin(115200);
   mySerial.println("serial-delimit-21"); // so I can keep track of what is loaded
 }
 
