@@ -79,7 +79,7 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
             }
         });
 
-        stopCode.setText("CRLF");
+        stopCode.setText("0x17");
         stopCode.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 stopCodeActionPerformed(evt);
@@ -148,11 +148,12 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(142, 142, 142)
-                        .addComponent(jLabel4))
+                        .addComponent(jLabel4)
+                        .addGap(0, 314, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(47, 47, 47)
-                        .addComponent(Messages, javax.swing.GroupLayout.PREFERRED_SIZE, 325, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(0, 0, Short.MAX_VALUE))
+                        .addComponent(Messages, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addContainerGap())))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -179,11 +180,12 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
                             .addComponent(stopCode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(setStopCodeButton))
                         .addGap(18, 18, 18)
-                        .addComponent(quit))
+                        .addComponent(quit)
+                        .addContainerGap(108, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(4, 4, 4)
-                        .addComponent(Messages, javax.swing.GroupLayout.PREFERRED_SIZE, 265, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(Messages, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addContainerGap())))
         );
 
         pack();

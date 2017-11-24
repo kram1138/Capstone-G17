@@ -4,6 +4,9 @@ package usercommandhandler; //For client application
  * @author Lucas Wiebe-Dembowski
  */
 public class UserCommandHandler {
+    static final byte CR = 0x0D;
+    static final byte LF = 0x0A;
+    
     private final userinterface.UserInterface myUI;
     private final serialcom.SerialCom myCom;
 
@@ -48,29 +51,29 @@ public class UserCommandHandler {
         case "stopCode":
             if(words.length > 1 && !words[1].isEmpty()){
                 int a = words[1].indexOf("0x");
-                if(a >= 0 && words[1].length() >= a + 4){
-                    myCom.STOP = words[1].substring(a, a+4);
-                }else if(words[1].equals("CRLF")){
-                    myCom.STOP = "\r\n";
+                if(a >= 0 && words[1].length() >= a + 4){ //valid 1-byte hex number
+                      myCom.STOP[0] = Byte.parseByte(words[1].substring(a+2,a+4), 16);
+                      myCom.STOP[1] = Byte.parseByte(words[1].substring(a+2,a+4), 16);
+                }else if(words[1].equals("CRLF")){ //carriage return + line feed
+                      myCom.STOP[0] = CR;
+                      myCom.STOP[1] = LF;
                 }else{
-                    myCom.STOP = words[1];
+                    myUI.update("Error: Stop Code must be either CRLF or a single byte hex number entered in the format 0xNN.\n"
+                        + "Current Stop Code is " + (myCom.STOP[0] == CR && myCom.STOP[1] == LF ? "CRLF" : myCom.STOP[0]));
                 }
+                myUI.update("Changed Stop Code to " + words[1]);
             }else{
-                myUI.update("setStopCode usage: setStopCode [code].\nCurrent Stop Code is " + myCom.STOP);
+                myUI.update("To change Stop Code, please enter the new Stop Code in the text box.\n"
+                        + "Current Stop Code is " + (myCom.STOP[0] == CR && myCom.STOP[1] == LF ? "CRLF" : myCom.STOP[0]));
             }
             break;
         case "portName":
             if(words.length > 1 && !words[1].isEmpty()){
-                int a = words[1].indexOf("0x");
-                if(a >= 0 && words[1].length() >= a + 4){
-                    myCom.STOP = words[1].substring(a, a+4);
-                }else if(words[1].equals("CRLF")){
-                    myCom.STOP = "\r\n";
-                }else{
-                    myCom.STOP = words[1];
-                }
+                myCom.setPortName(words[1]);
+                myUI.update("Changed port name to " + myCom.getPortName());
             }else{
-                myUI.update("portName usage: portName [name].\nCurrent portName is " + myCom.getPortName());
+                myUI.update("To change port name, please enter the new port name in the text box.\n"
+                        + "Current port name is " + myCom.getPortName());
             }
             break;
         case "listPorts":
@@ -79,7 +82,7 @@ public class UserCommandHandler {
         default:
             if(myCom.isOpened()){
                 myUI.update("command is: '" + myCommand + "'");
-                myCom.writeBytes(myCommand);
+                myCom.write(myCommand);
             }else{
                 myUI.update("No port open, doing nothing.");
             }

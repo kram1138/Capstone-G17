@@ -3,16 +3,20 @@ package serialcom;
 import jssc.SerialPort;
 import jssc.SerialPortException;
 import jssc.SerialPortList;
+import java.util.Arrays;
 
 /**
  * @author Lucas Wiebe-Dembowski
  */
 public final class SerialCom {
+
+    static final byte CR = 0x0D;
+    static final byte LF = 0x0A;
+
+    private SerialPort serialPort;
     
-    private final SerialPort serialPort;
-    
-//    private String STOP = Integer.toString(0x17);
-    public String STOP = "\r\n";
+//    public byte[] STOP = {CR, LF};
+    public byte[] STOP = {0x17, 0x17};
     
     public SerialCom(String portName){
         serialPort = new SerialPort(portName);
@@ -39,7 +43,7 @@ public final class SerialCom {
         try{
             if(!serialPort.isOpened()){
                 success = serialPort.openPort(); // open port for communication
-                success = success && serialPort.setParams(115200, 8, 1, 0); // baundRate, numberOfDataBits, numberOfStopBits, parity
+                success = success && serialPort.setParams(115200, 8, 0, 0); // baundRate, numberOfDataBits, numberOfStopBits, parity
             }
         }catch (SerialPortException ex) {
             System.out.println(ex);
@@ -47,16 +51,16 @@ public final class SerialCom {
         return success;
     }
     
-    public void writeBytes(String message){
+    public void write(String message){
         try {
             serialPort.writeBytes(message.getBytes());
-            serialPort.writeBytes(STOP.getBytes());
+            serialPort.writeBytes(STOP);
         } catch (SerialPortException ex) {
             System.out.println(ex);
         }
     }
     
-    public void writeByte(byte message){
+    public void write(byte message){
         try {
             serialPort.writeByte(message);
         } catch (SerialPortException ex) {
@@ -65,15 +69,16 @@ public final class SerialCom {
     }
     
     public String listPorts(){
-        String result = "";
-        String[] portNames = SerialPortList.getPortNames();
-        for (String port : portNames) {
-            result += port + ", ";
-        }
-        return result;
+        return Arrays.toString(SerialPortList.getPortNames());
     }
     
     public String getPortName(){
         return serialPort.getPortName();
+    }
+    
+    public boolean setPortName(String portName){
+        boolean success = false;
+        serialPort = new SerialPort(portName);
+        return success;
     }
 }
