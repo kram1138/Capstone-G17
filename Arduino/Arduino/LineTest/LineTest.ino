@@ -12,7 +12,7 @@ ZumoReflectanceSensorArray reflectanceSensors;
 ZumoMotors motors;
 Pushbutton button(ZUMO_BUTTON);
 
-
+const char ETB = 0x0D;//0x17;// END OF TRANSMISSION BLOCK
 const int MAX_SPEED = 150;// max allowed speed for the motors to turn. Top speed is 400.
 const int MIN_LINE_FOUND = 750;// min value from refletance sensor to confirm line is found
 const int NUM_OF_SENSORS = 6;// number of reflectance sensors
@@ -28,7 +28,7 @@ String bData = "";
 
 void setup()
 {
-  mySerial.begin(9600);// set bluetooth serial baud rate of 9600
+  mySerial.begin(115200);// set bluetooth serial baud rate of 115200
   mySerial.println("Bluetooth Communication Established!");
   // Play a little welcome song
 //  buzzer.play(">g32>>c32");
@@ -130,7 +130,7 @@ String readCmdFromBluetooth() {
   
   while (mySerial.available() > 0) {
     temp = mySerial.read();//gets one byte from serial buffer
-    if (temp == 0x0D) {// full command received after "enter" (0x0D) is read
+    if (temp == ETB) {// full command received after ETB (0x17) is read
       incCmd = false;
       break;
     }//breaks out of capture loop when enter is pressed
@@ -172,21 +172,26 @@ void loop()
     if (bData.length() > 0) {
       if (bData == "pos"){// 
         snprintf(printStr,PRINT_STR_BUFFER,"position: %d",position);
-        mySerial.println(printStr);
+        mySerial.print(printStr);
+        mySerial.print(ETB);
       } else if (bData == "speed"){
         snprintf(printStr,PRINT_STR_BUFFER,"m1Speed: %d; m2Speed: %d",m1Speed,m2Speed);
-        mySerial.println(printStr);
+        mySerial.print(printStr);
+        mySerial.print(ETB);
       } else if (bData == "stop") {
-        mySerial.println("Stopping...");
+        mySerial.print("Stopping...");
+        mySerial.print(ETB);
         max_speed = 0;
         motors.setSpeeds(max_speed, max_speed);
       } else if (bData == "start") {
-        mySerial.println("Starting...");
+        mySerial.print("Starting...");
+        mySerial.print(ETB);
         max_speed = MAX_SPEED;
         motors.setSpeeds(max_speed, max_speed);
       } else {
         snprintf(printStr,PRINT_STR_BUFFER,"Invalid Command: %s",bData.c_str());
-        mySerial.println(printStr);
+        mySerial.print(printStr);
+        mySerial.print(ETB);
       }
     }
     lastTime = millis();
