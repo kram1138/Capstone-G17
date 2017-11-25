@@ -12,7 +12,7 @@ ZumoReflectanceSensorArray reflectanceSensors;
 ZumoMotors motors;
 Pushbutton button(ZUMO_BUTTON);
 
-const char ETB = 0x0D;//0x17;// END OF TRANSMISSION BLOCK
+const char ETB = 0x0D;//0x17;// END OF TRANSMISSION BLOCK 
 const int MAX_SPEED = 150;// max allowed speed for the motors to turn. Top speed is 400.
 const int MIN_LINE_FOUND = 750;// min value from refletance sensor to confirm line is found
 const int NUM_OF_SENSORS = 6;// number of reflectance sensors
