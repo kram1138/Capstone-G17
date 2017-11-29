@@ -5,26 +5,56 @@
 #include <Pushbutton.h>
 #include <SoftwareSerial.h>
 
-
 SoftwareSerial mySerial(0,1);// set bluetooth serial communication
 //ZumoBuzzer buzzer;
 ZumoReflectanceSensorArray reflectanceSensors;
 ZumoMotors motors;
-Pushbutton button(ZUMO_BUTTON);
+Pushbutton button(ZUMO_BUTTON);// set zumo button
 
+// declare constant variables
+const bool LEFT = false;
+const bool RIGHT = true;
 const char ETB = 0x0D;//0x17;// END OF TRANSMISSION BLOCK 
 const int MAX_SPEED = 150;// max allowed speed for the motors to turn. Top speed is 400.
+const int MIN_CONSEC_COUNT = 3;// min consecutive times line read to eliminate false positive.
 const int MIN_LINE_FOUND = 750;// min value from refletance sensor to confirm line is found
 const int NUM_OF_SENSORS = 6;// number of reflectance sensors
 const int PRINT_STR_BUFFER = 128;// print string buffer size
+const int REFL_SENSOR_LEFT_END = 0;// sensors array position of the left most reflectance sensor
+const int REFL_SENSOR_LEFT_MIDDLE = 2;// sensors array position of the left center reflectance sensor
+const int REFL_SENSOR_RIGHT_END = 5;// sensors array possition of the right most reflectance sensor
+const int REFL_SENSOR_RIGHT_MIDDLE = 3;// sensors array possition of the right center reflectance sensor
+const int RESET = 0;// used to reset int value to zero
 
+
+struct turn
+{
+   bool turnDirection;
+   int turnNode;
+};
+
+typedef struct turn Turn;
+
+// declare variables
 boolean incCmd = false;// variable keeps track if full command is read or not
-char printStr[PRINT_STR_BUFFER];
-int m1Speed = 0;
-int m2Speed = 0;
-int lastError = 0;
-int max_speed = 0;
-String bData = "";
+char printStr[PRINT_STR_BUFFER];// char array buffer for writing msgs to serial
+int mLSpeed = 0;// left side motors speed
+int mRSpeed = 0;// right side motors speed
+int lastError = 0;// holds the last error value for PID calculation
+int max_speed = MAX_SPEED;// max allowed speed
+String bData = "";// string to store recieved serial commands
+unsigned int sensors[NUM_OF_SENSORS];// array to store values from reflectance sensors
+
+// declare node id variables 
+int countL = 0;// counting left node's consecutive readings
+int countR = 0;// counting right node's consecutive readings
+int currTurn = 0;
+int nodeL = 0;// counting number of left nodes
+int nodeR = 0;// counting number of right nodes
+Turn tempL = {LEFT, 2};
+Turn tempR = {RIGHT, 3};
+Turn turnsArr[] = {tempL, tempR};
+//boolean cross = true;
 
 void setup()
 {
@@ -78,25 +108,19 @@ void setup()
 // inputs value false. It then sets the isCentered boolean variable to 
 // true only if either the two middle sensors detected and the number of
 // lines detected is less
-boolean centered(unsigned int sensors[NUM_OF_SENSORS]){
+boolean centered(){
 //  unsigned int time = 0;
 //  time = micros();
   
   boolean isCentered;
-  boolean sensorsOnLine[NUM_OF_SENSORS];
 
-  // fill boolean reflectance sensor array according to if line is found
-  sensorsOnLine[0] = sensors[0] >= MIN_LINE_FOUND ? true : false;
-  sensorsOnLine[1] = sensors[1] >= MIN_LINE_FOUND ? true : false;
-  sensorsOnLine[2] = sensors[2] >= MIN_LINE_FOUND ? true : false;
-  sensorsOnLine[3] = sensors[3] >= MIN_LINE_FOUND ? true : false;
-  sensorsOnLine[4] = sensors[4] >= MIN_LINE_FOUND ? true : false;
-  sensorsOnLine[5] = sensors[5] >= MIN_LINE_FOUND ? true : false;
-
-  // if only either the middle two sensors detect the line then isCentered is set to true,
-  // othwerwise it will be set to false
-  if (sensorsOnLine[0] == false and sensorsOnLine[1] == false and (sensorsOnLine[2] == true or
-      sensorsOnLine[3] == true) and sensorsOnLine[4] == false and sensorsOnLine[5] == false) {
+  // Sets isCentered boolean to true if only either the middle two sensors
+  // find the line otherwise boolean value of false is set.
+  if ((sensors[0] < MIN_LINE_FOUND and sensors[5] < MIN_LINE_FOUND and
+       sensors[1] < MIN_LINE_FOUND and sensors[4] < MIN_LINE_FOUND) and
+       (sensors[REFL_SENSOR_LEFT_MIDDLE] > MIN_LINE_FOUND or
+       sensors[REFL_SENSOR_RIGHT_MIDDLE] > MIN_LINE_FOUND))
+  {
     isCentered = true;
   } else {
     isCentered = false;
@@ -150,12 +174,106 @@ String readCmdFromBluetooth() {
   }  
 }
 
+void checkNodes() 
+{
+  // check line read at left end sensor
+  if (sensors[REFL_SENSOR_LEFT_END] > MIN_LINE_FOUND) 
+  {
+    countL++;
+
+    // increment nodeL if read line at left sensor MIN_CONSEC_COUNT times
+    if (countL == MIN_CONSEC_COUNT)
+    {
+      nodeL++;
+      checkToTurn();
+    }
+  } else // reset countL if no line was found
+  {
+    countL = RESET;
+  }
+
+  // check line read at right end sensor
+  if (sensors[REFL_SENSOR_RIGHT_END] > MIN_LINE_FOUND)
+  {
+    countR++;
+
+    // increment nodeR if read line at right sensor MIN_CONSEC_COUNT times
+    if (countR == MIN_CONSEC_COUNT)
+    {
+      nodeR++;
+      checkToTurn();
+    }
+  } else // reset countR if no line was found
+  {
+    countR = RESET;
+  }
+}
+
+void waitWhileTurning()
+{
+  bool fullyTurned = false;
+
+  while (!fullyTurned) {
+    reflectanceSensors.readLine(sensors); // read data from reflectance sensors
+    
+//    snprintf(printStr,PRINT_STR_BUFFER,"Sensors: %d, %d, %d, %d, %d, %d",sensors[0],sensors[1],sensors[2],sensors[3],sensors[4],sensors[5]);
+//    mySerial.println(printStr);
+
+    if (centered())
+    {
+      fullyTurned = true;
+    }
+  }
+
+  mySerial.println("Turning completed!");mySerial.println();
+  
+  // reset motor speeds to maxSpeed
+  motors.setSpeeds(max_speed, max_speed);
+}
+
+void checkToTurn() 
+{
+  snprintf(printStr,PRINT_STR_BUFFER,"Nodes on Left: %d\nNodes on Right: %d\n",nodeL,nodeR);
+  mySerial.println(printStr);
+  
+  // proceeds if there are more turns to make
+  if (currTurn < sizeof(turnsArr)) {
+    Turn theTurn = turnsArr[currTurn];// get curr turn
+    
+    if (theTurn.turnDirection == LEFT)
+    {
+      // if curr turn direction is left
+      // and turn node equals nodeL then
+      // it properly turns
+      if (theTurn.turnNode == nodeL)
+      {
+        mySerial.println("Turning left...");
+        currTurn++;
+        motors.setSpeeds(-100,150);
+        waitWhileTurning();
+      }
+    } else { // right direction
+      // if curr turn direction is right
+      // and turn node equals nodeR then
+      // it properly turns
+      if (theTurn.turnNode == nodeR)
+      {
+        mySerial.println("Turning right...");
+        currTurn++;
+        motors.setSpeeds(150,-100);
+        waitWhileTurning();
+      }
+    }
+  } else {
+    mySerial.println("Finished turning instructions!");
+  }
+}
+
 void loop()
 {
   const int delayTime = 500;
   String bData;
   unsigned long lastTime = 0;
-  unsigned int sensors[NUM_OF_SENSORS];
 
   // Get the position of the line.  Note that we *must* provide the "sensors"
   // argument to readLine() here, even though we are not interested in the
@@ -175,7 +293,7 @@ void loop()
         mySerial.print(printStr);
         mySerial.print(ETB);
       } else if (bData == "speed"){
-        snprintf(printStr,PRINT_STR_BUFFER,"m1Speed: %d; m2Speed: %d",m1Speed,m2Speed);
+        snprintf(printStr,PRINT_STR_BUFFER,"mLSpeed: %d; mRSpeed: %d",mLSpeed,mRSpeed);
         mySerial.print(printStr);
         mySerial.print(ETB);
       } else if (bData == "stop") {
@@ -197,9 +315,12 @@ void loop()
     lastTime = millis();
   }
 
+  // call method to check if arrived at a node
+  checkNodes(); 
+
   // ONLY correct direction if the line is not detected from one of the middle
   // sensors or if the two sensors on both end detect a line.
-  if (!centered(sensors)) {
+  if (!centered()) {
 //    unsigned int time = 0;
 //    time = micros();
     
@@ -219,27 +340,27 @@ void loop()
   
     // Get individual motor speeds.  The sign of speedDifference
     // determines if the robot turns left or right.
-    m1Speed = max_speed + speedDifference;
-    m2Speed = max_speed - speedDifference;
+    mLSpeed = max_speed + speedDifference;
+    mRSpeed = max_speed - speedDifference;
   
     // Here we constrain our motor speeds to be between 0 and max_speed.
     // Generally speaking, one motor will always be turning at max_speed
     // and the other will be at max_speed-|speedDifference| if that is positive,
     // else it will be stationary.  For some applications, you might want to
     // allow the motor speed to go negative so that it can spin in reverse.
-    if (m1Speed < 0)
-      m1Speed = 0;
-    if (m2Speed < 0)
-      m2Speed = 0;
-    if (m1Speed > max_speed)
-      m1Speed = max_speed;
-    if (m2Speed > max_speed)
-      m2Speed = max_speed;
+    if (mLSpeed < 0)
+      mLSpeed = 0;
+    if (mRSpeed < 0)
+      mRSpeed = 0;
+    if (mLSpeed > max_speed)
+      mLSpeed = max_speed;
+    if (mRSpeed > max_speed)
+      mRSpeed = max_speed;
 
 //    time = micros() - time;
 //    snprintf(printStr,PRINT_STR_BUFFER,"Position Adjustment Time: %d",time);
 //    mySerial.print(printStr);
-    motors.setSpeeds(m1Speed, m2Speed);
+    motors.setSpeeds(mLSpeed, mRSpeed);
   } else {
     motors.setSpeeds(max_speed,max_speed);
   }
