@@ -1,23 +1,50 @@
 package usercommandhandler; //For client application
 
+import java.util.Observable;
+import java.util.Observer;
+
+
 /**
  * @author Lucas Wiebe-Dembowski
  */
-public class UserCommandHandler {
+public class UserCommandHandler extends Observable implements Observer {
     static final byte CR = 0x0D;
     static final byte LF = 0x0A;
     
-    private final userinterface.UserInterface myUI;
     private final serialcom.SerialCom myCom;
+    private String myUserCommand;
 
-    public UserCommandHandler(userinterface.UserInterface myUI, serialcom.SerialCom myCom) {
+    public UserCommandHandler(serialcom.SerialCom myCom) {
         //pcBluetoothTest instantiates a UserCommandHandler
-        this.myUI = myUI;
         this.myCom = myCom;
     }
     
+    public void notify(String msg) {
+        setChanged();
+        notifyObservers(msg);
+    }
+    
+    @Override
+    public void update(Observable obj, Object arg){ //Observer update() method.
+        if(arg instanceof String){
+            myUserCommand = (String)arg;
+            handleUserCommand(myUserCommand);
+        }
+    }
+    
+    public void sendMessage(String message){
+        if(myCom.isOpened()){
+            sendMessageToUI("Sending "+message+" to robot.");
+            if(!myCom.write(message)){ sendMessageToUI("Error sending "+message+" to robot."); }
+        }else{ sendMessageToUI("Open a port first."); }
+    }
+
+    public void sendMessageToUI(String theString) {
+        notify(theString);
+    }
+    
     public void handleUserCommand(String myCommand) {
-        //UI CALLS THIS METHOD WHEN USER ENTERS A COMMAND
+        //update() calls this
         String[] words = myCommand.split("\\s+");
         switch (words[0]) {
         case "": break;
@@ -25,68 +52,85 @@ public class UserCommandHandler {
             if (myCom.isOpened()) {
                 myCom.close();
             }
-            myUI.update("Exiting program");
+            sendMessageToUI("Exiting program");
             System.exit(0);
+            break;
+        case "path":
+            String path = "";
+            for(int i = 1; i < words.length; i++){
+                path += (words[i] + " ");
+            }
+            sendMessage(path);
+            break;
+        case "start":
+            sendMessage("start");
+            break;
+        case "stop":
+            sendMessage("stop");
             break;
         case "open":
             if(myCom.isOpened()){
-                myUI.update("Port " + myCom.getPortName() + " was already open");
+                sendMessageToUI("Port " + myCom.getPortName() + " was already open");
             }else if (myCom.open()) {
-                myUI.update("Successfully opened port " + myCom.getPortName());
+                sendMessageToUI("Successfully opened port " + myCom.getPortName());
             } else {
-                myUI.update("Could not open port " + myCom.getPortName());
+                sendMessageToUI("Could not open port " + myCom.getPortName());
             }
             break;
         case "close":
             if (myCom.isOpened()) {
                 if(myCom.close()){
-                    myUI.update("Successfully closed port " + myCom.getPortName());
+                    sendMessageToUI("Successfully closed port " + myCom.getPortName());
                 }else{
-                    myUI.update("Could not close port " + myCom.getPortName());
+                    sendMessageToUI("Could not close port " + myCom.getPortName());
                 }
-             } else {
-                 myUI.update("No port was open");
-             }                    
+            } else {
+                sendMessageToUI("No port was open");
+            }                    
             break;
         case "stopCode":
             if(words.length > 1 && !words[1].isEmpty()){
                 int a = words[1].indexOf("0x");
                 if(a >= 0 && words[1].length() >= a + 4){ //valid 1-byte hex number
-                      myCom.STOP[0] = Byte.parseByte(words[1].substring(a+2,a+4), 16);
-                      myCom.STOP[1] = Byte.parseByte(words[1].substring(a+2,a+4), 16);
-                }else if(words[1].equals("CRLF")){ //carriage return + line feed
-                      myCom.STOP[0] = CR;
-                      myCom.STOP[1] = LF;
+                    myCom.STOP[0] = Byte.parseByte(words[1].substring(a+2,a+4), 16);
+                    myCom.STOP[1] = Byte.parseByte(words[1].substring(a+2,a+4), 16);
+                }else if(words[1].equalsIgnoreCase("CRLF")){ //carriage return + line feed
+                    myCom.STOP[0] = CR;
+                    myCom.STOP[1] = LF;
                 }else{
-                    myUI.update("Error: Stop Code must be either CRLF or a single byte hex number entered in the format 0xNN.\n"
+                    sendMessageToUI("Error: Stop Code must be either CRLF or a single byte hex number entered in the format 0xNN.\n"
                         + "Current Stop Code is " + (myCom.STOP[0] == CR && myCom.STOP[1] == LF ? "CRLF" : myCom.STOP[0]));
                 }
-                myUI.update("Changed Stop Code to " + words[1]);
+                sendMessageToUI("Set Stop Code to " + words[1]);
             }else{
-                myUI.update("To change Stop Code, please enter the new Stop Code in the text box.\n"
+                sendMessageToUI("To change Stop Code, please enter the new Stop Code in the text box.\n"
                         + "Current Stop Code is " + (myCom.STOP[0] == CR && myCom.STOP[1] == LF ? "CRLF" : myCom.STOP[0]));
             }
             break;
         case "portName":
             if(words.length > 1 && !words[1].isEmpty()){
                 myCom.setPortName(words[1]);
-                myUI.update("Changed port name to " + myCom.getPortName());
+                sendMessageToUI("Set port name to " + myCom.getPortName());
             }else{
-                myUI.update("To change port name, please enter the new port name in the text box.\n"
+                sendMessageToUI("To change port name, please enter the new port name in the text box.\n"
                         + "Current port name is " + myCom.getPortName());
             }
             break;
         case "listPorts":
-            myUI.update(myCom.listPorts());
+            sendMessageToUI(myCom.listPorts());
             break;
         default:
-            if(myCom.isOpened()){
-                myUI.update("command is: '" + myCommand + "'");
-                myCom.write(myCommand);
-            }else{
-                myUI.update("No port open, doing nothing.");
-            }
             break;
         }
     }
 }
+
+
+/*
+lr
+rr
+li
+ri
+
+path 3 li_2 ri_3 ri_4
+*/

@@ -9,24 +9,35 @@ public class PcBluetoothTest {
     final static boolean USING_GUI = true;
    
     public static void main(String[] args) {
-        serialcom.SerialCom myCom = new serialcom.SerialCom("COM6");
+        serialcom.SerialCom myCom = new serialcom.SerialCom("COM5");
         
         if(USING_GUI){
             final netbeansgui.GUI myUI = new netbeansgui.GUI();
             
-            usercommandhandler.UserCommandHandler myCommand = new usercommandhandler.UserCommandHandler(myUI, myCom);
-            myUI.setCommand(myCommand);
+            usercommandhandler.UserCommandHandler myCommand = new usercommandhandler.UserCommandHandler(myCom);
+            myUI.addObserver(myCommand);
+            myCommand.addObserver(myUI);
         
             java.awt.EventQueue.invokeLater(new Runnable() {
                 public void run() {
                    myUI.setVisible(true);
                 }
             });
+            
+            myCom.addObserver(myUI);
+            myCom.start();
+            
+//            String x = "x";
+//            if(x.contains("Arduino") && x.substring(0, 7).equals("Arduino")){
+//                System.out.println("Hello shithead");
+//            }else{
+//                System.out.println("asshole");
+//            }
         
-        }else{
+        }else{ //broken now, StandardIO needs to extend Observable and implement Observer
             final standardio.StandardIO myUI = new standardio.StandardIO();
             
-            usercommandhandler.UserCommandHandler myCommand = new usercommandhandler.UserCommandHandler(myUI, myCom);
+            usercommandhandler.UserCommandHandler myCommand = new usercommandhandler.UserCommandHandler(myCom);
             myUI.setCommand(myCommand);
         
             Thread theUIThread = new Thread(myUI);
@@ -34,9 +45,5 @@ public class PcBluetoothTest {
         }
 
         System.out.println("UI Thread started.");
-//        Byte a = Byte.parseByte("17", 16);
-//        String as = Byte.toString(a);
-//        byte[] aa = as.getBytes();
-//        System.out.println(Arrays.toString(aa));
    }
 }
