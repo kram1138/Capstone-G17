@@ -30,7 +30,9 @@
               <Component id="Close" min="-2" max="-2" attributes="0"/>
               <EmptySpace min="-2" pref="73" max="-2" attributes="0"/>
               <Component id="jLabel5" min="-2" max="-2" attributes="0"/>
-              <EmptySpace min="-2" pref="256" max="-2" attributes="0"/>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Component id="numberBox" min="-2" pref="252" max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="38" max="-2" attributes="0"/>
               <Component id="jLabel4" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="32767" attributes="0"/>
               <Component id="jLabel6" min="-2" max="-2" attributes="0"/>
@@ -39,10 +41,6 @@
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="102" alignment="1" attributes="0">
-                      <Component id="listPorts" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace min="-2" pref="42" max="-2" attributes="0"/>
-                  </Group>
                   <Group type="102" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" alignment="0" attributes="0">
@@ -54,21 +52,18 @@
                                       <EmptySpace max="-2" attributes="0"/>
                                       <Component id="Stop" min="-2" max="-2" attributes="0"/>
                                   </Group>
-                                  <Group type="102" alignment="0" attributes="0">
-                                      <Group type="103" groupAlignment="1" attributes="0">
+                                  <Group type="103" alignment="0" groupAlignment="1" max="-2" attributes="0">
+                                      <Component id="leftRoom" alignment="0" max="32767" attributes="0"/>
+                                      <Component id="rightRoom" alignment="0" max="32767" attributes="0"/>
+                                      <Component id="leftIntersection" alignment="0" max="32767" attributes="0"/>
+                                      <Component id="rightIntersection" alignment="0" pref="143" max="32767" attributes="0"/>
+                                      <Group type="103" alignment="0" groupAlignment="1" attributes="0">
                                           <Component id="sendPath" min="-2" pref="102" max="-2" attributes="0"/>
-                                          <Group type="103" groupAlignment="1" max="-2" attributes="0">
-                                              <Component id="leftRoom" alignment="0" max="32767" attributes="0"/>
-                                              <Component id="rightRoom" alignment="0" max="32767" attributes="0"/>
-                                              <Component id="leftIntersection" alignment="0" max="32767" attributes="0"/>
-                                              <Component id="rightIntersection" alignment="0" pref="143" max="32767" attributes="0"/>
-                                          </Group>
                                           <Component id="clearPath" alignment="1" min="-2" pref="102" max="-2" attributes="0"/>
                                           <Component id="showPath" alignment="1" min="-2" pref="102" max="-2" attributes="0"/>
                                       </Group>
-                                      <EmptySpace min="-2" pref="10" max="-2" attributes="0"/>
-                                      <Component id="numberBox" max="32767" attributes="0"/>
                                   </Group>
+                                  <Component id="nodeNumberButton" alignment="0" min="-2" max="-2" attributes="0"/>
                               </Group>
                           </Group>
                           <Component id="quit" alignment="0" min="-2" max="-2" attributes="0"/>
@@ -85,7 +80,14 @@
                               </Group>
                           </Group>
                       </Group>
-                      <EmptySpace min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="32767" attributes="0"/>
+                  </Group>
+                  <Group type="102" alignment="1" attributes="0">
+                      <Group type="103" groupAlignment="1" attributes="0">
+                          <Component id="listPorts" min="-2" max="-2" attributes="0"/>
+                          <Component id="NodeNumberSpinner" min="-2" pref="56" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace min="-2" pref="42" max="-2" attributes="0"/>
                   </Group>
               </Group>
               <Component id="jScrollPane1" min="-2" pref="186" max="-2" attributes="0"/>
@@ -93,7 +95,7 @@
               <Component id="Messages" min="-2" pref="290" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="ArduinoMessages" min="-2" pref="290" max="-2" attributes="0"/>
-              <EmptySpace max="32767" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -114,6 +116,7 @@
                           <Component id="jLabel5" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="jLabel4" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="jLabel6" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="numberBox" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
               </Group>
@@ -125,23 +128,25 @@
                           <Component id="Start" alignment="0" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="leftRoom" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="numberBox" alignment="3" min="-2" max="-2" attributes="0"/>
-                      </Group>
+                      <Component id="leftRoom" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="rightRoom" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="leftIntersection" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="rightIntersection" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace pref="13" max="32767" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="NodeNumberSpinner" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="nodeNumberButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="sendPath" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
                       <Component id="clearPath" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="showPath" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="29" max="-2" attributes="0"/>
                       <Component id="listPorts" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
@@ -156,10 +161,10 @@
                               <Component id="stopCode" min="-2" max="-2" attributes="0"/>
                           </Group>
                       </Group>
-                      <EmptySpace max="32767" attributes="0"/>
+                      <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="quit" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <Component id="Messages" pref="389" max="32767" attributes="0"/>
+                  <Component id="Messages" max="32767" attributes="0"/>
                   <Component id="jScrollPane1" max="32767" attributes="0"/>
                   <Component id="ArduinoMessages" alignment="0" max="32767" attributes="0"/>
               </Group>
@@ -345,6 +350,19 @@
     <Component class="javax.swing.JTextField" name="numberBox">
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="numberBoxActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JSpinner" name="NodeNumberSpinner">
+      <Events>
+        <EventHandler event="mouseWheelMoved" listener="java.awt.event.MouseWheelListener" parameters="java.awt.event.MouseWheelEvent" handler="NodeNumberSpinnerMouseWheelMoved"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="nodeNumberButton">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Node Number"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="nodeNumberButtonActionPerformed"/>
       </Events>
     </Component>
   </SubComponents>

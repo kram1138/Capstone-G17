@@ -33,10 +33,14 @@ public class UserCommandHandler extends Observable implements Observer {
     }
     
     public void sendMessage(String message){
-        if(myCom.isOpened()){
+        if(!myCom.isOpened()){
+            sendMessageToUI("Open a port first.");
+        }else if(!myCom.CTS()){
+            sendMessageToUI("Make sure the other device is connected first.");
+        }else{
             sendMessageToUI("Sending "+message+" to robot.");
             if(!myCom.write(message)){ sendMessageToUI("Error sending "+message+" to robot."); }
-        }else{ sendMessageToUI("Open a port first."); }
+        }
     }
 
     public void sendMessageToUI(String theString) {

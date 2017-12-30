@@ -26,13 +26,6 @@ public class PcBluetoothTest {
             
             myCom.addObserver(myUI);
             myCom.start();
-            
-//            String x = "x";
-//            if(x.contains("Arduino") && x.substring(0, 7).equals("Arduino")){
-//                System.out.println("Hello shithead");
-//            }else{
-//                System.out.println("asshole");
-//            }
         
         }else{ //broken now, StandardIO needs to extend Observable and implement Observer
             final standardio.StandardIO myUI = new standardio.StandardIO();

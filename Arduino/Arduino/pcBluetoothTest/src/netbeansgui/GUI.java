@@ -17,16 +17,11 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
     }
 
     private GUIObservable myObservable = new GUIObservable();
-    private usercommandhandler.UserCommandHandler myUserCommandHandler;
     private String path;
-    private int nodeNumber;
-    private int numNodes;
 
     public GUI() {
         initComponents();
         path = "";
-        nodeNumber = 0;
-        numNodes = 0;
     }
     
     @Override
@@ -44,7 +39,6 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
     }
     
     private void sendMsg(String msg){
-//         myUserCommandHandler.handleUserCommand(msg);
          myObservable.notify(msg);
     }
     
@@ -86,6 +80,8 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
         jLabel6 = new javax.swing.JLabel();
         showPath = new javax.swing.JButton();
         numberBox = new javax.swing.JTextField();
+        NodeNumberSpinner = new javax.swing.JSpinner();
+        nodeNumberButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -225,6 +221,19 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
             }
         });
 
+        NodeNumberSpinner.addMouseWheelListener(new java.awt.event.MouseWheelListener() {
+            public void mouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
+                NodeNumberSpinnerMouseWheelMoved(evt);
+            }
+        });
+
+        nodeNumberButton.setText("Node Number");
+        nodeNumberButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                nodeNumberButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -236,7 +245,9 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
                 .addComponent(Close)
                 .addGap(73, 73, 73)
                 .addComponent(jLabel5)
-                .addGap(256, 256, 256)
+                .addGap(18, 18, 18)
+                .addComponent(numberBox, javax.swing.GroupLayout.PREFERRED_SIZE, 252, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(38, 38, 38)
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jLabel6)
@@ -244,9 +255,6 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(listPorts)
-                        .addGap(42, 42, 42))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
@@ -257,18 +265,16 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
                                         .addComponent(Start)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(Stop))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                        .addComponent(leftRoom, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(rightRoom, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(leftIntersection, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(rightIntersection, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 143, Short.MAX_VALUE)
+                                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                                             .addComponent(sendPath, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                                .addComponent(leftRoom, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                .addComponent(rightRoom, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                .addComponent(leftIntersection, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                .addComponent(rightIntersection, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 143, Short.MAX_VALUE))
                                             .addComponent(clearPath, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addComponent(showPath, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                        .addGap(10, 10, 10)
-                                        .addComponent(numberBox))))
+                                            .addComponent(showPath, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                    .addComponent(nodeNumberButton)))
                             .addComponent(quit)
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(10, 10, 10)
@@ -279,13 +285,18 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                                     .addComponent(setPortNameButton)
                                     .addComponent(setStopCodeButton))))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(listPorts)
+                            .addComponent(NodeNumberSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 56, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(42, 42, 42)))
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 186, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(Messages, javax.swing.GroupLayout.PREFERRED_SIZE, 290, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(ArduinoMessages, javax.swing.GroupLayout.PREFERRED_SIZE, 290, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -301,7 +312,8 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel5)
                             .addComponent(jLabel4)
-                            .addComponent(jLabel6))))
+                            .addComponent(jLabel6)
+                            .addComponent(numberBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
@@ -309,22 +321,24 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
                             .addComponent(Stop)
                             .addComponent(Start))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(leftRoom)
-                            .addComponent(numberBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(leftRoom)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(rightRoom)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(leftIntersection)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(rightIntersection)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 13, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(NodeNumberSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(nodeNumberButton))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(sendPath)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(clearPath)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(showPath)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGap(29, 29, 29)
                         .addComponent(listPorts)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -336,9 +350,9 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
                                 .addComponent(portName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(4, 4, 4)
                                 .addComponent(stopCode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(18, 18, 18)
                         .addComponent(quit))
-                    .addComponent(Messages, javax.swing.GroupLayout.DEFAULT_SIZE, 389, Short.MAX_VALUE)
+                    .addComponent(Messages, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jScrollPane1)
                     .addComponent(ArduinoMessages, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
@@ -423,7 +437,6 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
     private void clearPathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearPathActionPerformed
         PathField.setText("");
         path = new String("");
-        numNodes = 0;
     }//GEN-LAST:event_clearPathActionPerformed
 
     private void showPathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showPathActionPerformed
@@ -435,10 +448,15 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
         PathField.append(numberBox.getText() + "\n");
     }//GEN-LAST:event_numberBoxActionPerformed
 
-    public void setCommand(usercommandhandler.UserCommandHandler command) {
-        this.myUserCommandHandler = command;
-    }
-    
+    private void NodeNumberSpinnerMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {//GEN-FIRST:event_NodeNumberSpinnerMouseWheelMoved
+        NodeNumberSpinner.setValue((int)NodeNumberSpinner.getValue() - evt.getWheelRotation());
+    }//GEN-LAST:event_NodeNumberSpinnerMouseWheelMoved
+
+    private void nodeNumberButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nodeNumberButtonActionPerformed
+        path += (Integer.toString((int)NodeNumberSpinner.getValue()) + " ");
+        PathField.append(Integer.toString((int)NodeNumberSpinner.getValue()) + "\n");
+    }//GEN-LAST:event_nodeNumberButtonActionPerformed
+
     @Override
     public void update(String theMessage){
         Messages.append(theMessage + "\n");
@@ -452,6 +470,7 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
     private java.awt.TextArea ArduinoMessages;
     private javax.swing.JButton Close;
     private java.awt.TextArea Messages;
+    private javax.swing.JSpinner NodeNumberSpinner;
     private javax.swing.JButton Open;
     private javax.swing.JTextArea PathField;
     private javax.swing.JButton Start;
@@ -464,6 +483,7 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
     private javax.swing.JButton leftIntersection;
     private javax.swing.JButton leftRoom;
     private javax.swing.JButton listPorts;
+    private javax.swing.JButton nodeNumberButton;
     private javax.swing.JTextField numberBox;
     private javax.swing.JTextField portName;
     private javax.swing.JButton quit;

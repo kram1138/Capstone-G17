@@ -46,9 +46,20 @@ public final class SerialCom extends Observable implements Runnable{
         try{
             if(!serialPort.isOpened()){
                 success = serialPort.openPort(); // open port for communication
-                success = success && serialPort.setParams(115200, 8, 0, 0); // baundRate, numberOfDataBits, numberOfStopBits, parity
+                success = success && serialPort.setParams(115200, 8, 0, 0); // baudRate, numberOfDataBits, numberOfStopBits, parity
             }
         }catch (SerialPortException ex) {
+            System.out.println(ex);
+        }
+        return success;
+    }
+    
+    public boolean CTS(){
+        //Check if the port is clear to send. If not, you should not attempt sending anything.
+        boolean success = false;
+        try{
+            success = serialPort.isCTS();
+        }catch(SerialPortException ex){
             System.out.println(ex);
         }
         return success;
@@ -101,7 +112,7 @@ public final class SerialCom extends Observable implements Runnable{
     
     String data = "";
     @Override
-    public void run(){
+    public void run(){ //read messages from server
         String msgFromServer = "";
         while(stopThisThread == false){
             System.out.print("");
