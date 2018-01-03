@@ -6,7 +6,7 @@ or printing a 1-D float list to a file in one column.
 Floats were used instead of doubles because the application using this will not need double precision.
 
 @author Lucas Wiebe-Dembowski
-@since 10/26/2017
+@since 01/02/2018
 */
 package CSVParsing;
 
@@ -86,6 +86,27 @@ public class CSVParsing{
 			for(int i = 0; i < list.size(); i++){
 				pr.print(list.get(i));
 				if(i < list.size() - 1){
+					//skip a line after every entry of the list except for the last one
+					pr.println();
+				}
+			}
+
+			pr.close();
+
+		}catch(IOException e){
+			e.printStackTrace();
+		}		
+	}
+
+	public static void listToFile(int[] list, String file){
+		//Print an int array to a file in one column. File can be csv or txt.
+
+		try{
+			PrintWriter pr = new PrintWriter(file);
+			
+			for(int i = 0; i < list.length; i++){
+				pr.print(list[i]);
+				if(i < list.length - 1){
 					//skip a line after every entry of the list except for the last one
 					pr.println();
 				}

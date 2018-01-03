@@ -135,7 +135,7 @@ public class Simulator{
 						dCavg = (double)dC; //The average of one data point is itself
 					}else{
 						//Update the average of a set of data points after adding a data point
-						dCavg = (i * dCavg + dC) / (i + 1);
+						dCavg = (i * dCavg + dC) / (i + 1); //(n*xbar + x_n+1) / (n + 1)
 					}
 
 					p = Math.exp((double)(-dC) / (dCavg * currentTemperature)); //Boltzmann probability

@@ -105,7 +105,7 @@ public class UserCommandHandler extends Observable implements Observer {
                     sendMessageToUI("Error: Stop Code must be either CRLF or a single byte hex number entered in the format 0xNN.\n"
                         + "Current Stop Code is " + (myCom.STOP[0] == CR && myCom.STOP[1] == LF ? "CRLF" : myCom.STOP[0]));
                 }
-                sendMessageToUI("Set Stop Code to " + words[1]);
+                sendMessageToUI("Stop Code set to " + words[1]);
             }else{
                 sendMessageToUI("To change Stop Code, please enter the new Stop Code in the text box.\n"
                         + "Current Stop Code is " + (myCom.STOP[0] == CR && myCom.STOP[1] == LF ? "CRLF" : myCom.STOP[0]));
@@ -114,7 +114,7 @@ public class UserCommandHandler extends Observable implements Observer {
         case "portName":
             if(words.length > 1 && !words[1].isEmpty()){
                 myCom.setPortName(words[1]);
-                sendMessageToUI("Set port name to " + myCom.getPortName());
+                sendMessageToUI("Port name set to " + myCom.getPortName());
             }else{
                 sendMessageToUI("To change port name, please enter the new port name in the text box.\n"
                         + "Current port name is " + myCom.getPortName());

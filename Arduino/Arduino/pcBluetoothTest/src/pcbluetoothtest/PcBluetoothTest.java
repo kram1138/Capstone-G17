@@ -36,7 +36,6 @@ public class PcBluetoothTest {
             Thread theUIThread = new Thread(myUI);
             theUIThread.start();
         }
-
-        System.out.println("UI Thread started.");
+        
    }
 }

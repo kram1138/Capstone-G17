@@ -2,7 +2,7 @@
 Generic program for testing various things related to our project.
 
 @author Lucas Wiebe-Dembowski
-@since 10/31/2017
+@since 01/02/2018
 */
 
 import java.util.ArrayList;
@@ -16,26 +16,28 @@ import Simulator.Simulator;
 public class Test{
 
 	final static boolean VERBOSE = false;
-	final static int numIntersections = 3;
+	final static int numIntersections = 5;
 
 	public static void main(String[] args){
 		// testCSVParser("adjMatrix1.csv", "out/adjMatrix1_out.csv");
-		testMatrixGenerator();
+		// testMatrixGenerator();
 		// testPathMatrixFunction();
-		// testMatrixMultiply("matrix2.csv", "matrix3.csv");
 		// testAllPairsShortestPathFunction();
-		// testSimulator();
+		testSimulator();
 
 		System.out.println("Done testing.");
 	}
 
 	public static void testSimulator(){
-		int numRooms = 30;
+		int numRooms = 50;
 		int maxDirectionsPerIntersection = 3;
 
 		// ArrayList<ArrayList<Float>> A = MatrixGenerator.randomConnectedAdjMatrix(numRooms, numIntersections, maxDirectionsPerIntersection, false);
+		// CSVParsing.matrixToCSV(A, "matrix50_5_3.csv");
+		String file = "matrix50_5_2";
 		// ArrayList<ArrayList<Float>> A = CSVParsing.matrixListFromCSV("matrix4.csv");
-		ArrayList<ArrayList<Float>> A = CSVParsing.matrixListFromCSV("matrix6.csv");
+		// ArrayList<ArrayList<Float>> A = CSVParsing.matrixListFromCSV("matrix30.csv");
+		ArrayList<ArrayList<Float>> A = CSVParsing.matrixListFromCSV(file + ".csv");
 
 		ArrayList<ArrayList<Float>> D = MatrixGenerator.allPairsShortestPaths(A, VERBOSE);
 		if(VERBOSE){
@@ -43,6 +45,7 @@ public class Test{
 			Generic.printAdjMatrix(A);
 			System.out.println("Distance Matrix:");
 			Generic.printAdjMatrix(D);
+			Generic.printAdjMatrix(MatrixGenerator.binaryMatrix(A));
 		}
 
 		int nEL = 2000;
@@ -60,10 +63,11 @@ public class Test{
 		ArrayList<ArrayList<Float>> costs_and_times = new ArrayList<ArrayList<Float>>();
 		long startTime, stop, runtime = 0;
 		int i = 0;
-		for(int j = 0; j < 100; j++){
+		// for(int j = 0; j < 100; j++){
 			startTime = System.nanoTime();
 			int numIterations = 6;
 			soln = Simulator.optimizeSA(D, start, nEL, nCL, initialTemperature, finalTemperature, coolingSchedule, numIterations, VERBOSE);
+			System.out.println("solution is " + Arrays.toString(soln));
 			stop = System.nanoTime();
 			runtime = stop - startTime; //time in nanoseconds
 			cost = Simulator.cost(D, start, soln);
@@ -72,10 +76,13 @@ public class Test{
 			costs_and_times.get(i).add(cost);
 			i++;
 			System.out.printf("nEL = %d. nCL = %d. SOLUTION = %.1f. Runtime = %fs.\n\n", nEL, nCL, cost, (double)runtime / 1000000000.0);
-		}
+		// }
 		String outputFile = "out/costsList.csv";
 		System.out.printf("Sending results to %s... ", outputFile);
 		CSVParsing.matrixToCSV(costs_and_times, outputFile);
+
+		CSVParsing.listToFile(soln, file + "_path.csv");
+
 		System.out.println(" done.");
 	}
 
