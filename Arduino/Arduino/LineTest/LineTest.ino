@@ -4,6 +4,7 @@
 //#include <ZumoBuzzer.h>
 #include <Pushbutton.h>
 #include <SoftwareSerial.h>
+//#include <String.h>
 
 SoftwareSerial mySerial(0,1);// set bluetooth serial communication
 //ZumoBuzzer buzzer;
@@ -12,8 +13,8 @@ ZumoMotors motors;
 Pushbutton button(ZUMO_BUTTON);// set zumo button
 
 // declare constant variables
-const bool LEFT = false;
-const bool RIGHT = true;
+//const bool LEFT = false;
+//const bool RIGHT = true;
 const char ETB = 0x0D;//0x17;// END OF TRANSMISSION BLOCK 
 const int MAX_SPEED = 150;// max allowed speed for the motors to turn. Top speed is 400.
 const int MIN_CONSEC_COUNT = 3;// min consecutive times line read to eliminate false positive.
@@ -25,11 +26,16 @@ const int REFL_SENSOR_LEFT_MIDDLE = 2;// sensors array position of the left cent
 const int REFL_SENSOR_RIGHT_END = 5;// sensors array possition of the right most reflectance sensor
 const int REFL_SENSOR_RIGHT_MIDDLE = 3;// sensors array possition of the right center reflectance sensor
 const int RESET = 0;// used to reset int value to zero
-
+const String LEFT_ROOM = "lr";
+const String RIGHT_ROOM = "rr";
+const String LEFT_INTERSECTION = "li";
+const String RIGHT_INTERSECTION = "ri";
+const char *DELIMITER_SPACE = {' '};
+const char *DELIMITER_UNDERSCORE = {'_'};
 
 struct turn
 {
-   bool turnDirection;
+   String turnDirection;
    int turnNode;
 };
 
@@ -44,6 +50,7 @@ int lastError = 0;// holds the last error value for PID calculation
 int max_speed = MAX_SPEED;// max allowed speed
 String bData = "";// string to store recieved serial commands
 unsigned int sensors[NUM_OF_SENSORS];// array to store values from reflectance sensors
+Turn *turnsArr;
 
 // declare node id variables 
 int countL = 0;// counting left node's consecutive readings
@@ -51,13 +58,139 @@ int countR = 0;// counting right node's consecutive readings
 int currTurn = 0;
 int nodeL = 0;// counting number of left nodes
 int nodeR = 0;// counting number of right nodes
-Turn tempL = {LEFT, 2};
-Turn tempR = {RIGHT, 3};
-Turn turnsArr[] = {tempL, tempR};
-//boolean cross = true;
+//Turn temp0 = {LEFT_INTERSECTION, 2};
+//Turn temp1 = {RIGHT_INTERSECTION, 3};
+//Turn temp2 = {RIGHT_INTERSECTION, 4};
+//Turn temp3 = {RIGHT_INTERSECTION, 5};
+//Turn temp3_5 = {RIGHT_INTERSECTION, 6};
+//Turn temp4 = {LEFT_INTERSECTION, 4};
+//Turn temp5 = {LEFT_INTERSECTION, 5};
+//Turn tempTurnsArr[] = {temp0, temp1, temp2, temp3, temp4, temp5};
+//turnsArr = tempTurnsArr;
+
+//void tokenizeIntoArray(char *str, char **strArr, const int strArrSize, const char *delimiter) {
+//  int next = 0;
+////  char *saveptr = NULL; /* for strtok */
+//
+//  strArr[next++] = strtok(str, delimiter);
+//  while (next < strArrSize && strArr[next-1] != NULL)
+//    strArr[next++] = strtok(NULL, delimiter);
+//
+//  if (next == strArrSize) /* safely null terminate in case not done by strtok*/
+//    strArr[next-1] = NULL;
+//}
+
+//void populateTurnsArr(char **arr, const int arrSize) {
+//  
+//  for (int i = 0; i < arrSize; i++) {
+//    char **tempArr = malloc(sizeof(char*)*2);
+//    tokenizeIntoArray(arr[i],tempArr,2,DELIMITER_UNDERSCORE);
+//    snprintf(printStr,PRINT_STR_BUFFER,"\nTurn: %s; %s\n",tempArr[0],tempArr[1]);
+//    mySerial.println(printStr);
+//    turnsArr[i].turnDirection = String(tempArr[0]);  
+//    turnsArr[i].turnDirection = atoi(tempArr[1]);
+//  }
+//}
+
+void splitByDelimiterIntoArray(String str, String *strArr, char delimiter, const int strArrSize) {
+  int index = 0;
+  int prevIndex = 0;
+  int strIndex = 0;
+  
+  do {
+    index = str.indexOf(delimiter);
+
+    if (index != -1) {
+      strArr[strIndex] = str.substring(prevIndex,index);
+      str = str.substring(index+1);
+    } else {
+      strArr[strIndex] = str.substring(0);
+      str = "";
+    }
+    
+    strIndex++;
+  } while (str.length() > 0 and strIndex < strArrSize);
+}
+
+void populateTurnsArr(String *arr, const int arrSize) {
+  int arrIndex = 2;
+  
+  for (int index = 0; index < arrSize; index++) {
+    String tempArr[arrIndex];
+    splitByDelimiterIntoArray(arr[index],tempArr,DELIMITER_UNDERSCORE,arrIndex);
+    
+    snprintf(printStr,PRINT_STR_BUFFER,"\nTurn: %s; %s\n",tempArr[0].c_str(),tempArr[1].c_str());
+    mySerial.println(printStr);
+    
+    turnsArr[index].turnDirection = tempArr[0];  
+    turnsArr[index].turnNode = tempArr[1].toInt();
+  }
+}
+
+void loadMap() 
+{
+//  bool mapLoaded = false;
+  String mapData = "";
+  int dataCount = 0;
+
+  mySerial.println("Starting loop to receive data...");
+  mySerial.println();
+  do {
+    mapData = readCmdFromBluetooth();
+    
+    if (mapData.length() > 0)
+    {
+      mySerial.println("MapData length > 0!");
+      mySerial.println();
+
+      mySerial.println("Read Data:");
+      mySerial.println(mapData);
+      mySerial.println();
+
+      int spaceIndex = mapData.indexOf(' ');
+      dataCount = mapData.substring(0,spaceIndex).toInt();
+      turnsArr = malloc(sizeof(Turn)*dataCount);
+//      char *tempArr[dataCount];
+      String dataArr[dataCount];
+//      char mapDataCharArr[(mapData.substring(mapData.indexOf(' '))).length()+1];
+      String data = mapData.substring(spaceIndex+1);
+
+      // ignore count in the mapData for tokenizing
+//      mapData.substring(mapData.indexOf(' ')).toCharArray(mapDataCharArr,(mapData.substring(mapData.indexOf(' '))).length()+1);
+
+      snprintf(printStr,PRINT_STR_BUFFER,"\nData: %s\n",data.c_str());
+      mySerial.println(printStr);
+      
+      // split the mapDataCharArr by space
+      splitByDelimiterIntoArray(data,dataArr,DELIMITER_SPACE,dataCount);
+//      splitByDelimiterIntoArray(mapDataCharArr,tempArr,dataCount,DELIMITER_SPACE);
+
+      snprintf(printStr,PRINT_STR_BUFFER,"\nSpace: %s\n",dataArr[0].c_str());
+      mySerial.println(printStr);
+      mySerial.println("Done split by space!");
+      mySerial.println();
+      
+      // use tempArr to create Turn objects and add them to turnsArr
+      populateTurnsArr(dataArr, dataCount);
+      mySerial.println("Done populating TurnsArr!");
+      mySerial.println();
+//      mapLoaded = true;
+    }
+  } while (!(mapData.length() > 0));
+  // Loop while we do not completely aquire the mapData 
+  // via bluetooth and store it.
+
+  for (int i = 0; i < dataCount; i++) {
+    snprintf(printStr,PRINT_STR_BUFFER,"Turn: %s; Node: %d",(turnsArr[i].turnDirection).c_str(), turnsArr[i].turnNode);
+    mySerial.println(printStr);
+    mySerial.println();
+  }
+//  return mapLoaded;
+}
 
 void setup()
 {
+//  Serial.begin(9600);
   mySerial.begin(115200);// set bluetooth serial baud rate of 115200
   mySerial.println("Bluetooth Communication Established!");
   // Play a little welcome song
@@ -91,6 +224,10 @@ void setup()
   }
   motors.setSpeeds(0,0);
 
+  // load map via bluetooth
+  loadMap();
+  mySerial.println("Out of LoadMap!");
+  mySerial.println();
   // Turn off LED to indicate we are through with calibration
   digitalWrite(13, LOW);
 //  buzzer.play(">g32>>c32");
@@ -168,8 +305,14 @@ String readCmdFromBluetooth() {
     bData.trim();
     snprintf(printStr,PRINT_STR_BUFFER,"\nbData: %s",bData.c_str());
     mySerial.println(printStr);
+//    mySerial.println("Current bData:");
+//    mySerial.println(bData);
+//    mySerial.println();
     return bData;
   } else {
+//    mySerial.println("Current bData:");
+//    mySerial.println(bData);
+//    mySerial.println();
     return (String)"";
   }  
 }
@@ -240,7 +383,7 @@ void checkToTurn()
   if (currTurn < sizeof(turnsArr)) {
     Turn theTurn = turnsArr[currTurn];// get curr turn
     
-    if (theTurn.turnDirection == LEFT)
+    if (theTurn.turnDirection == LEFT_INTERSECTION)
     {
       // if curr turn direction is left
       // and turn node equals nodeL then
