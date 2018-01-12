@@ -2,7 +2,7 @@
 Generic program for testing various things related to our project.
 
 @author Lucas Wiebe-Dembowski
-@since 01/02/2018
+@since 01/09/2018
 */
 
 import java.util.ArrayList;
@@ -34,12 +34,20 @@ public class Test{
 
 		// ArrayList<ArrayList<Float>> A = MatrixGenerator.randomConnectedAdjMatrix(numRooms, numIntersections, maxDirectionsPerIntersection, false);
 		// CSVParsing.matrixToCSV(A, "matrix50_5_3.csv");
-		String file = "matrix50_5_2";
+		String file = "matrix4MSP";
 		// ArrayList<ArrayList<Float>> A = CSVParsing.matrixListFromCSV("matrix4.csv");
 		// ArrayList<ArrayList<Float>> A = CSVParsing.matrixListFromCSV("matrix30.csv");
 		ArrayList<ArrayList<Float>> A = CSVParsing.matrixListFromCSV(file + ".csv");
 
 		ArrayList<ArrayList<Float>> D = MatrixGenerator.allPairsShortestPaths(A, VERBOSE);
+
+		System.out.println("\n----------------------------------------------\n");
+		int[] what1 = {0, 3, 2, 8, 5, 7, 1, 4, 6, 10, 9};
+		int[] what2 = {8, 2, 3, 0, 5, 7, 1, 4, 6, 10, 9};
+		int[] what3 = {9, 10, 6, 1, 4, 7, 0, 5, 3, 2, 8};
+		System.out.printf("cost is %f", Simulator.cost(D, 9, what3));
+		System.out.println("\n----------------------------------------------\n");
+
 		if(VERBOSE){
 			System.out.println("Adjacency Matrix:");
 			Generic.printAdjMatrix(A);

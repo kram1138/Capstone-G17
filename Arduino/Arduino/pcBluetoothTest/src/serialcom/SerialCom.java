@@ -124,6 +124,8 @@ public final class SerialCom extends Observable implements Runnable{
                     }
                     if(data.contains("\r\n")){
                         notify("Arduino" + data);
+                        //"Arduino" indicates to observer that the message came 
+                        //from the server, not from this program.
                         data = "";
                     }
                 } catch (SerialPortException ex) {

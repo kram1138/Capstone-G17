@@ -1,8 +1,15 @@
 package netbeansgui;
 
+import CSVParsing.CSVParsing;
+import GenericCode.Generic;
+import MatrixGenerator.MatrixGenerator;
+import Pathfinding.Pathfinding;
+
 import java.awt.Color;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  *
@@ -16,12 +23,15 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
         }
     }
 
-    private GUIObservable myObservable = new GUIObservable();
+    private final GUIObservable myObservable = new GUIObservable();
     private String path;
+    private String mapFileName;
+    private ArrayList<ArrayList<Float>> A;
 
     public GUI() {
         initComponents();
         path = "";
+        mapFileName = "";
     }
     
     @Override
@@ -39,7 +49,7 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
     }
     
     private void sendMsg(String msg){
-         myObservable.notify(msg);
+        myObservable.notify(msg);
     }
     
     public void addObserver(Observer o){
@@ -84,6 +94,9 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
         ArduinoMessages = new javax.swing.JTextArea();
         jScrollPane3 = new javax.swing.JScrollPane();
         Messages = new javax.swing.JTextArea();
+        fileNameBox = new javax.swing.JTextField();
+        setFileButton = new javax.swing.JButton();
+        createPathButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -274,6 +287,30 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
         Messages.setRows(5);
         jScrollPane3.setViewportView(Messages);
 
+        fileNameBox.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        fileNameBox.setText("matrix4.csv");
+        fileNameBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                fileNameBoxActionPerformed(evt);
+            }
+        });
+
+        setFileButton.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        setFileButton.setText("Load Map From File");
+        setFileButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                setFileButtonActionPerformed(evt);
+            }
+        });
+
+        createPathButton.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        createPathButton.setText("Compute Optimal Path");
+        createPathButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                createPathButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -327,7 +364,16 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
                                         .addComponent(sendPath, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE))))
                             .addGroup(layout.createSequentialGroup()
                                 .addContainerGap()
-                                .addComponent(rightIntersection, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(rightIntersection, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(fileNameBox, javax.swing.GroupLayout.PREFERRED_SIZE, 191, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(createPathButton))
+                            .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(setFileButton)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 186, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(28, 28, 28)
@@ -381,7 +427,13 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
                 .addComponent(clearPath)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(showPath)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(23, 23, 23)
+                .addComponent(fileNameBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(setFileButton)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(createPathButton)
+                .addContainerGap(125, Short.MAX_VALUE))
             .addGroup(layout.createSequentialGroup()
                 .addGap(9, 9, 9)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -481,7 +533,7 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
     }//GEN-LAST:event_clearPathActionPerformed
 
     private void showPathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showPathActionPerformed
-        Messages.append(path + "\n");
+        update(path);
     }//GEN-LAST:event_showPathActionPerformed
 
     private void numberBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_numberBoxActionPerformed
@@ -499,9 +551,77 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
         PathField.append(Integer.toString((int)NodeNumberSpinner.getValue()) + "\n");
     }//GEN-LAST:event_nodeNumberButtonActionPerformed
 
+    private void fileNameBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileNameBoxActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_fileNameBoxActionPerformed
+
+    private void setFileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setFileButtonActionPerformed
+        mapFileName = fileNameBox.getText();
+        update(String.format("Loading building map from file: %s ...", mapFileName));
+        A = CSVParsing.matrixListFromCSV(mapFileName);
+        if(A.size() == 0){
+            update("Map unable to load. Make sure the file exists in the project root directory.");
+        }else{
+            update("Map successfully loaded.");
+        }
+    }//GEN-LAST:event_setFileButtonActionPerformed
+
+    private void createPathButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createPathButtonActionPerformed
+	if(A == null || A.size() == 0){
+            update("Please load a map from a file first.");
+        }else{
+            boolean VERBOSE = false;
+
+            ArrayList<ArrayList<Float>> D = MatrixGenerator.allPairsShortestPaths(A, VERBOSE);
+
+            int nEL = 2000;
+            int nCL = 2000;
+            double initialTemperature = 2.0;
+            double finalTemperature = 0.001;
+            int coolingSchedule = Pathfinding.EXPONENTIAL;
+
+            update(String.format("\nRunning Simulated Annealing \non %d nodes with \nnEL = %d, \nnCL = %d, \nTi = %f and \nTf = %f \nusing %s cooling schedule:\n", 
+                A.size(), nEL, nCL, initialTemperature, finalTemperature, Pathfinding.schedules[coolingSchedule]));
+
+            int start = 0; //node that the robot starts at
+            int[] soln;
+            float cost;
+            ArrayList<ArrayList<Float>> costs_and_times = new ArrayList<ArrayList<Float>>();
+            long startTime, stop, runtime = 0;
+            int i = 0;
+            // for(int j = 0; j < 100; j++){
+                    startTime = System.nanoTime();
+                    int numIterations = 6;
+                    soln = Pathfinding.optimizeSA(D, start, nEL, nCL, initialTemperature, finalTemperature, coolingSchedule, numIterations, VERBOSE);
+                    update("solution is " + Arrays.toString(soln));
+                    stop = System.nanoTime();
+                    runtime = stop - startTime; //time in nanoseconds
+                    cost = Pathfinding.cost(D, start, soln);
+//                    costs_and_times.add(new ArrayList<Float>());
+//                    costs_and_times.get(i).add((float)runtime / 1000000000.0f);
+//                    costs_and_times.get(i).add(cost);
+//                    i++;
+                    update(String.format("nEL = %d. nCL = %d. \nSOLUTION COST = %.1f. \nRuntime = %fs.\n", nEL, nCL, cost, (double)runtime / 1000000000.0));
+            // }
+            String outputFile;
+//            outputFile = "costsList.csv";
+//            update(String.format("Sending results to %s... ", outputFile));
+//            CSVParsing.matrixToCSV(costs_and_times, outputFile);
+
+            outputFile = mapFileName.replace(".csv", "") + "_path.csv";
+            update(String.format("Sending path to %s... ", outputFile));
+            CSVParsing.listToFile(soln, outputFile);
+
+            update(" done.\n");
+        }
+    }//GEN-LAST:event_createPathButtonActionPerformed
+
     @Override
     public void update(String theMessage){
         Messages.append(theMessage + "\n");
+        Messages.update(Messages.getGraphics());
+        //Messages.update() forces the field to update so it doesn't continue 
+        //processing stuff and dump all the text way later.
     }
     
     public void updateArduinoMessages(String theMessage){
@@ -518,6 +638,8 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
     private javax.swing.JButton Start;
     private javax.swing.JButton Stop;
     private javax.swing.JButton clearPath;
+    private javax.swing.JButton createPathButton;
+    private javax.swing.JTextField fileNameBox;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
@@ -534,6 +656,7 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
     private javax.swing.JButton rightIntersection;
     private javax.swing.JButton rightRoom;
     private javax.swing.JButton sendPath;
+    private javax.swing.JButton setFileButton;
     private javax.swing.JButton setPortNameButton;
     private javax.swing.JButton setStopCodeButton;
     private javax.swing.JButton showPath;
