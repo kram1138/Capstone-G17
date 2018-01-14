@@ -25,6 +25,39 @@ public class Generic{
 		return B;
 	}
 
+	public static boolean matricesDeepEquals(ArrayList<ArrayList<Float>> A, ArrayList<ArrayList<Float>> B){
+		/*
+		Return true if the value of each element Aij is equal to Bij. A and B MUST BE THE SAME SIZE.
+		*/
+		boolean success = true;
+		if(A.size() != B.size()){
+			success = false;
+		}else{
+			for(int i = 0; success && i < A.size(); i++){
+				if(A.get(i).size() != B.get(i).size()){
+					success = false;
+				}else{
+					for(int j = 0; success && j < A.size(); j++){
+						float a = A.get(i).get(j);
+						float b = B.get(i).get(j);
+						if(a != b){
+							success = false;
+						}
+					}
+				}
+			}
+		}
+		return success;
+	}
+
+	public static int[] arrayListToArray(ArrayList<Integer> L){
+		int[] A = new int[L.size()];
+		for(int i = 0; i < A.length; i++){
+			A[i] = (int)L.get(i);
+		}
+		return A;
+	}
+
 	public static void printAdjMatrix(ArrayList<ArrayList<Float>> A){
 		//Print a 2D Float ArrayList of any size to the console.
 		//Formatting is designed to look good for square float matrices with only 1 decimal place of precision.

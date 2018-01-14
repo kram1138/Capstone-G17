@@ -6,7 +6,7 @@ or printing a 1-D float list to a file in one column.
 Floats were used instead of doubles because the application using this will not need double precision.
 
 @author Lucas Wiebe-Dembowski
-@since 01/02/2018
+@since 01/13/2018
 */
 package CSVParsing;
 

@@ -2,12 +2,13 @@
 Pathfinding Simulator.
 
 @author Lucas Wiebe-Dembowski
-@since 10/31/2017
+@since 01/12/2018
 */
 package Simulator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.io.*;
 
 import GenericCode.Generic;
 
@@ -17,6 +18,12 @@ public class Simulator{
 	final public static int EXPONENTIAL = 1;
 	final public static int ADAPTIVE = 2;
 	final public static String[] schedules = {"linear", "exponential", "adaptive"};
+
+	final private static int LEFT = -1;
+	final private static int RIGHT = 1;
+	final private static int UP = 2;
+	final private static int DOWN = -2;
+	final private static int NO_DIRECTION = 0;
 
 	public static int[] optimizeSA(ArrayList<ArrayList<Float>> distMatrix, 
 									int start, 
@@ -177,5 +184,211 @@ public class Simulator{
 		}
 		result += distMatrix.get(soln[n-1]).get(start); //go back to the starting point at the end.
 		return result;
+	}
+
+	public static String encodedPath(ArrayList<ArrayList<Integer>> dir, int[] path){
+		/*
+		Take a complete path through a map that includes duplicate nodes, such as
+		one returned by completePath(), and encode it in a way that the robot can understand.
+		
+		e.g. a, b, c might become 3 li_2 ri_3 ri_4
+		*/
+		String result = Integer.toString(path.length);
+		return result;
+	}
+
+	public static int[] completePath(ArrayList<ArrayList<Float>> A, int[] path){
+		/*
+		Calculate the complete, literal path through the building, including duplicate nodes,
+		 given a path that omits duplicate nodes, such as one returned by optimizeSA().
+		*/
+
+		ArrayList<Integer> result = new ArrayList<Integer>();
+		if(path.length > 0){
+			result.add(path[0]);
+			for(int i = 1; i < path.length; i++){
+				if((float)A.get(i-1).get(i) > 0.0f){
+					result.add(path[i]);
+				}else{ //no edge from path[i-1] to path[i]
+					int[] subpath = shortestPath(A, path[i-1], path[i], false);
+					for(int k = 1; k < subpath.length; k++){ //ignore subpath[0] because it was already added on the previous iteration
+						result.add(subpath[k]);
+					}
+				}
+			}
+		}
+		return Generic.arrayListToArray(result);
+	}
+
+	public static int[] shortestPath(ArrayList<ArrayList<Float>> A, int S, int F, boolean verbose){
+		/*
+		Returns the shortest path between nodes S and F. A is the weighted adjacency matrix.
+		The calling function can compute path cost by calling Simulator.cost() on the return value of this function.
+
+		 Uses Dijkstra's algorithm, as described by MATH 3120 Fall 2015, Section 5.9, page 128
+		Translating this into Java from a pseudocode language designed to be readable for mathematicians was a bit of a job, but oh well,
+		example Java code for Dijkstra on the internet is all crap anyways, they want to literally implement Node and Edge objects to store the graph, 
+		rather than just using a matrix :/
+		*/
+
+		int n = A.size(); //number of nodes in the graph
+
+		ArrayList<ArrayList<Integer>> pathTable = new ArrayList<ArrayList<Integer>>();
+		for(int i = 0; i < n; i++){
+			pathTable.add(new ArrayList<Integer>());
+			pathTable.get(i).add(S); //every S-V path starts with S.
+		}
+
+		ArrayList<Integer> U = new ArrayList<Integer>();
+		U.add(S);
+		float[] d = new float[n]; //list of shortest distances from S to n
+		d[S] = 0; //distance from S to itself is 0
+		for(int v = 0; v < n; v++){ //initialization loop for d
+			if(v != S && (float)A.get(S).get(v) > 0.0f){ //there is an edge from S to v
+				d[v] = A.get(S).get(v);
+				pathTable.get(v).add(v); //right now, the shortest path we know so far to v is just the edge from S to v.
+			}else{
+				d[v] = Float.POSITIVE_INFINITY;
+			}
+		}
+		while(true){
+			float mindist = Float.POSITIVE_INFINITY;
+			int u = -1;
+			for(int v = 0; v < n; v++){ //this loop seeks the next uk
+				//check if U contains v
+				boolean contains = false;
+				for(int k = 0; !contains && k < U.size(); k++){
+					if((int)U.get(k) == v){ contains = true; } //need to compare the unboxed primitive
+				}
+
+				if(!contains){ //v not in U
+					if(d[v] < mindist){
+						u = v;
+						mindist = d[v];
+					}
+				}
+			}
+			if(u == F){ break; } //Tests the termination condition
+			U.add(u);
+			if(verbose){
+				System.out.print("U is ");
+				System.out.println(U);
+			}
+			for(int v = 0; v < n; v++){ //this loop updates distances for vertices adjacent to Uk
+				//check if U contains v
+				boolean contains = false;
+				for(int k = 0; !contains && k < U.size(); k++){
+					if((int)U.get(k) == v){ contains = true; } //need to compare the unboxed primitive
+				}
+
+				if(!contains && (float)A.get(v).get(u) > 0.0f){ //v not in U and there's no u,v edge
+					if(d[v] > d[u] + (float)A.get(u).get(v)){
+						//change the minimum S-v distance to the minimum S-u distance plus the u-v edge weight. 
+						//and replace the path to v with the path to u, plus v.
+						d[v] = d[u] + (float)A.get(u).get(v); //d[v] = min( d[v], d[u] + A.get(u).get(v) )
+						pathTable.get(v).clear();
+						pathTable.get(v).addAll(pathTable.get(u)); //path to u
+						pathTable.get(v).add(v); //plus v
+						if(verbose){
+							System.out.printf("Updating path to v=%d via u=%d\n", v, u);
+							System.out.print("New path is ");
+							System.out.println(pathTable.get(v));
+						}
+					}
+				}
+			}
+		}
+		if(verbose){
+			System.out.printf("Dijkstra: S = %d, F = %d, cost = %f\n", S, F, (float)d[F]);
+			Generic.printMatrix(pathTable);
+		}
+
+		return Generic.arrayListToArray(pathTable.get(F)); //return type is int[]
+	}
+
+	public static void mapMatrixFromCSV(String file,  ArrayList<ArrayList<Float>> adj,  ArrayList<ArrayList<Integer>> dir, boolean verbose){
+		/*
+		This function is not in CSVParsing because LEFT, RIGHT, UP, DOWN are constants that are specific to this application and should be defined in this file.
+		Read a 2-D matrix of any size from a csv file that represents a building map.
+		If a square matrix is required, the calling function must be responsible for ensuring that that is the case.
+
+		IMPORTANT!!! This function requires the file to be formatted in a VERY SPECIFIC WAY:
+		Matrix organized like a weighted adjacency matrix, except each entry has either l, r, u or d, 
+		corresponding to left, right, up, down respectively, immediately after the number with no characters separating them.
+		If there is no direction, there is no letter after the number.
+		If the matrix is not organized in this way, this function will not work at all.
+
+		Example of a valid csv file smallGraph3Map.csv: (TABS ADDED ONLY FOR READABILITY. ACTUAL CSV FILE MUST CONTAIN NO TABS OR SPACES)
+		0,		-1,		-1,		2l,		-1,		-1,		-1,		3r,		-1,		-1,		-1,		-1,		-1,		0.5u,	-1,		-1,		-1
+		-1,		0,		-1,		-1,		-1,		-1,		3r,		-1,		-1,		-1,		-1,		-1,		4u,		-1,		-1,		-1,		2d
+		-1,		-1,		0,		-1,		-1,		7r,		-1,		-1,		-1,		-1,		-1,		4u,		-1,		-1,		-1,		3d,		-1
+		2r,		-1,		-1,		0,		-1,		-1,		-1,		-1,		-1,		-1,		-1,		-1,		-1,		-1,		-1,		1l,		-1
+		-1,		-1,		-1,		-1,		0,		-1,		-1,		-1,		8l,		-1,		-1,		-1,		1r,		-1,		-1,		-1,		-1
+		-1,		-1,		7l,		-1,		-1,		0,		-1,		-1,		-1,		-1,		-1,		-1,		-1,		0.5r,	-1,		-1,		-1
+		-1,		3l,		-1,		-1,		-1,		-1,		0,		-1,		-1,		-1,		6r,		-1,		-1,		-1,		-1,		-1,		-1
+		3l,		-1,		-1,		-1,		-1,		-1,		-1,		0,		-1,		-1,		-1,		-1,		-1,		-1,		-1,		-1,		1r
+		-1,		-1,		-1,		-1,		8r,		-1,		-1,		-1,		0,		-1,		-1,		1l,		-1,		-1,		-1,		-1,		-1
+		-1,		-1,		-1,		-1,		-1,		-1,		-1,		-1,		-1,		0,		-1,		-1,		-1,		-1,		2u,		-1,		-1
+		-1,		-1,		-1,		-1,		-1,		-1,		6l,		-1,		-1,		-1,		0,		-1,		-1,		-1,		2r,		-1,		-1
+		-1,		-1,		4d,		-1,		-1,		-1,		-1,		-1,		1r,		-1,		-1,		0,		-1,		-1,		-1,		-1,		-1
+		-1,		4d,		-1,		-1,		1l,		-1,		-1,		-1,		-1,		-1,		-1,		-1,		0,		-1,		-1,		-1,		-1
+		0.5d,	-1,		-1,		-1,		-1,		0.5l,	-1,		-1,		-1,		-1,		-1,		-1,		-1,		0,		-1,		-1,		-1
+		-1,		-1,		-1,		-1,		-1,		-1,		-1,		-1,		-1,		2d,		2l,		-1,		-1,		-1,		0,		-1,		-1
+		-1,		-1,		3u,		1r,		-1,		-1,		-1,		-1,		-1,		-1,		-1,		-1,		-1,		-1,		-1,		0,		-1
+		-1,		2u,		-1,		-1,		-1,		-1,		-1,		1l,		-1,		-1,		-1,		-1,		-1,		-1,		-1,		-1,		0
+
+
+		Store weights in adj, directions in dir. Directions for l, r, u, d become -1, 1, 2 and -2 respectively.
+		*/
+
+		final String DEFAULT_DELIMITER = ","; //commas for csv, could potentially change this for other formats
+
+		try{
+			BufferedReader br = new BufferedReader(new FileReader(file));
+			String line = br.readLine();
+			String[] lineArray = line.split(DEFAULT_DELIMITER);
+
+			int i = 0;
+			while(line != null){
+				adj.add(new ArrayList<Float>());
+				dir.add(new ArrayList<Integer>());
+				for(int j = 0; j < lineArray.length; j++){
+					String entry = lineArray[j];
+					char last = entry.charAt(entry.length() - 1);
+					if(last == 'l'){
+						String x = entry.substring(0, entry.length() - 1); //remove last character
+						adj.get(i).add(Float.parseFloat(x));
+						dir.get(i).add(LEFT);
+					}else if(last == 'r'){
+						String x = entry.substring(0, entry.length() - 1); //remove last character
+						adj.get(i).add(Float.parseFloat(x));
+						dir.get(i).add(RIGHT);
+					}else if(last == 'u'){
+						String x = entry.substring(0, entry.length() - 1); //remove last character
+						adj.get(i).add(Float.parseFloat(x));
+						dir.get(i).add(UP);
+					}else if(last == 'd'){
+						String x = entry.substring(0, entry.length() - 1); //remove last character
+						adj.get(i).add(Float.parseFloat(x));
+						dir.get(i).add(DOWN);
+					}else{ //no direction
+						adj.get(i).add(Float.parseFloat(entry));
+						dir.get(i).add(NO_DIRECTION);
+					}
+				}
+				line = br.readLine();
+				if(line != null){
+					lineArray = line.split(DEFAULT_DELIMITER);
+				}
+				i++;
+			}
+			if(verbose){
+				System.out.println(adj.size());
+				System.out.println(dir.size());
+			}
+
+		}catch(IOException e){
+			System.out.println(e);
+		}
 	}
 }

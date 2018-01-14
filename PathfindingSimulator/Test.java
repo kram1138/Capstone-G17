@@ -2,7 +2,7 @@
 Generic program for testing various things related to our project.
 
 @author Lucas Wiebe-Dembowski
-@since 01/09/2018
+@since 01/13/2018
 */
 
 import java.util.ArrayList;
@@ -23,7 +23,13 @@ public class Test{
 		// testMatrixGenerator();
 		// testPathMatrixFunction();
 		// testAllPairsShortestPathFunction();
-		testSimulator();
+		// testDijkstra();
+
+		testCompletePath();
+
+		// testMapMatrixFromCSV();
+
+		// testSimulator();
 
 		System.out.println("Done testing.");
 	}
@@ -92,6 +98,48 @@ public class Test{
 		CSVParsing.listToFile(soln, file + "_path.csv");
 
 		System.out.println(" done.");
+	}
+
+	public static void testMapMatrixFromCSV(){
+		//Successfully tested on smallGraph3Map.csv.
+		String file = "smallGraph3Map.csv";
+		ArrayList<ArrayList<Float>> adj = new ArrayList<ArrayList<Float>>();
+		ArrayList<ArrayList<Integer>> dir = new ArrayList<ArrayList<Integer>>();
+		Simulator.mapMatrixFromCSV(file, adj, dir, true);
+		System.out.println("adj is " + (MatrixGenerator.isSymmetric(adj, VERBOSE) ? "" : "NOT") + " symmetric.");
+		Generic.printAdjMatrix(adj);
+		System.out.println("dir is " + (MatrixGenerator.isNegativeSymmetric(dir, VERBOSE) ? "" : "NOT") + " negative symmetric.");
+		Generic.printMatrix(dir);
+	}
+
+	public static void testCompletePath(){
+		//Successfully tested on matrix4.csv (no corners or directions) 
+		//and matrix4Updated.csv (with corners, no directions)
+
+		String file = "smallGraph3Map.csv";
+		ArrayList<ArrayList<Float>> A = CSVParsing.matrixListFromCSV("matrix4Updated.csv");
+		ArrayList<ArrayList<Float>> adj = new ArrayList<ArrayList<Float>>();
+		ArrayList<ArrayList<Integer>> dir = new ArrayList<ArrayList<Integer>>();
+		Simulator.mapMatrixFromCSV(file, adj, dir, false);
+		Generic.printAdjMatrix(A);
+		Generic.printAdjMatrix(adj);
+		System.out.println("A is " + (Generic.matricesDeepEquals(A, adj) ? "" : "NOT") + " equal to adj.");
+
+		// int[] path = {0, 5, 3, 2, 8, 4, 10, 9, 6, 1, 7}; //matrix4
+		int[] path = {0, 13, 5, 3, 15, 2, 11, 8, 4, 12, 10, 14, 9, 6, 1, 16, 7}; //matrix4Updated
+		System.out.printf("Compact path starting at %d is %s\n", path[0], Arrays.toString(path));
+		int[] completePath = Simulator.completePath(adj, path);
+		System.out.printf("Complete path starting at %d is %s\n", completePath[0], Arrays.toString(completePath));
+	}
+
+	public static void testDijkstra(){
+		//paths tested successfully on matrix4.csv: 8-1, 8-7, 5-9, 2-9
+		String file = "matrix4";
+		ArrayList<ArrayList<Float>> A = CSVParsing.matrixListFromCSV(file + ".csv");
+		int S = 2;
+		int F = 9;
+		int[] path = Simulator.shortestPath(A, S, F, true);
+		System.out.printf("Shortest path from %d to %d is %s\n", S, F, Arrays.toString(path));
 	}
 
 	public static void testMatrixGenerator(){
