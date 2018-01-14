@@ -27,11 +27,15 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
     private String path;
     private String mapFileName;
     private ArrayList<ArrayList<Float>> A;
+    
+    private int numNodes; //number of nodes in path
+    private boolean waitingForResponse; //true if arduino is supposed to send message back for confirmation, false otherwise.
 
     public GUI() {
         initComponents();
         path = "";
         mapFileName = "";
+        waitingForResponse = false;
     }
     
     @Override
@@ -41,7 +45,20 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
             String myText = (String)arg;
             if(myText.contains("Arduino") && myText.substring(0, 7).equals("Arduino")){
                 //This message was sent from the arduino, not internally from this program.
-                updateArduinoMessages(myText.substring(7, myText.length() - 2)); // -2 to ignore the \r\n at the end
+                String str = myText.substring(7, myText.length() - 2); // -2 to ignore the \r\n at the end
+                String pathString = Integer.toString(numNodes) + " " + path;
+                System.out.println("str is '" + str + "'");
+                System.out.println("path is '" + path + "'");
+                if(waitingForResponse && str.trim().equals(pathString.trim())){
+                    waitingForResponse = false;
+                    update("Successfully sent path to Robot and received confirmation.");
+                    sendMsg("ACK AAAAAAAAAA");
+                }else if(waitingForResponse && !str.trim().equals(pathString.trim())){
+                    update("Sent path to Robot, but there was a transmission error. Re-sending.");
+                    sendMsg("ACK OOOOOOOOOO");
+                    sendMsg("path " + pathString); //the word "path" gets deleted before sending to robot.
+                }
+                updateArduinoMessages(str);
             }else{ //This message was sent internally from this program.
                 update(myText);
             }
@@ -318,73 +335,74 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(276, 276, 276)
+                        .addGap(34, 34, 34)
+                        .addComponent(Start)
+                        .addGap(18, 18, 18)
+                        .addComponent(Stop))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(portName)
+                                    .addComponent(stopCode, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(setPortNameButton)
+                                    .addComponent(setStopCodeButton)))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(Open)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(Close))
+                            .addComponent(listPorts)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(1, 1, 1)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(leftIntersection, javax.swing.GroupLayout.DEFAULT_SIZE, 169, Short.MAX_VALUE)
+                                    .addComponent(rightRoom, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(leftRoom, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(nodeNumberButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(NodeNumberSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 56, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(showPath, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addComponent(clearPath, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(sendPath, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(rightIntersection, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(fileNameBox, javax.swing.GroupLayout.PREFERRED_SIZE, 191, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(createPathButton))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(setFileButton)))
+                .addGap(47, 47, 47)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel5)
                         .addGap(18, 18, 18)
                         .addComponent(numberBox, javax.swing.GroupLayout.PREFERRED_SIZE, 252, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(38, 38, 38)
-                        .addComponent(jLabel4)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(jLabel4))
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(34, 34, 34)
-                                .addComponent(Start)
-                                .addGap(18, 18, 18)
-                                .addComponent(Stop))
-                            .addGroup(layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                            .addComponent(portName)
-                                            .addComponent(stopCode, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                            .addComponent(setPortNameButton)
-                                            .addComponent(setStopCodeButton)))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(Open)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(Close))
-                                    .addComponent(listPorts)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGap(1, 1, 1)
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                            .addComponent(leftIntersection, javax.swing.GroupLayout.DEFAULT_SIZE, 169, Short.MAX_VALUE)
-                                            .addComponent(rightRoom, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                            .addComponent(leftRoom, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(nodeNumberButton)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                        .addComponent(NodeNumberSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 56, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addComponent(showPath, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                        .addComponent(clearPath, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(sendPath, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                            .addGroup(layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(rightIntersection, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(fileNameBox, javax.swing.GroupLayout.PREFERRED_SIZE, 191, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(createPathButton))
-                            .addGroup(layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(setFileButton)))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 186, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(28, 28, 28)
-                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(29, 29, 29)))
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
+                        .addGap(0, 119, Short.MAX_VALUE)
                         .addComponent(jLabel6)
                         .addGap(86, 86, 86)
                         .addComponent(quit))
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jScrollPane2)
+                        .addGap(11, 11, 11)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -433,7 +451,7 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
                 .addComponent(setFileButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(createPathButton)
-                .addContainerGap(125, Short.MAX_VALUE))
+                .addContainerGap(286, Short.MAX_VALUE))
             .addGroup(layout.createSequentialGroup()
                 .addGap(9, 9, 9)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -517,14 +535,15 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
     }//GEN-LAST:event_leftIntersectionActionPerformed
 
     private void sendPathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendPathActionPerformed
-        int x = 0; //Count how many spaces there are. Number of nodes is one more than that.
-        for(int i = 0; i < path.length() - 1; i++){ // -1 to avoid counting the sapce at the end.
+        numNodes = 0; //Count how many spaces there are. Number of nodes is one more than that.
+        for(int i = 0; i < path.length() - 1; i++){ // -1 to avoid counting the space at the end.
             if(path.charAt(i) == ' '){
-                x++;
+                numNodes++;
             }
         }
-        if(x > 0 || !path.isEmpty()) x++;
-        sendMsg("path " + Integer.toString(x) + " " + path);
+        if(numNodes > 0 || !path.isEmpty()) numNodes++;
+        sendMsg("path " + Integer.toString(numNodes) + " " + path); //the word "path" gets deleted before sending to robot.
+        waitingForResponse = true;
     }//GEN-LAST:event_sendPathActionPerformed
 
     private void clearPathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearPathActionPerformed

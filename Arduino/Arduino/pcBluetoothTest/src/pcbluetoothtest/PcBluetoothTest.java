@@ -3,9 +3,6 @@ package pcbluetoothtest;
 import java.util.Arrays;
 import java.util.ArrayList;
 
-import CSVParsing.CSVParsing;
-import GenericCode.Generic;
-import Pathfinding.Pathfinding;
 
 /**
  * @author Lucas Wiebe-Dembowski

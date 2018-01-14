@@ -59,6 +59,13 @@ public class UserCommandHandler extends Observable implements Observer {
             sendMessageToUI("Exiting program");
             System.exit(0);
             break;
+        case "ACK":
+            if(words.length > 1){
+                sendMessage(words[1]);
+            }else{
+                sendMessage("AAAAAAAAAA");
+            }
+            break;
         case "path":
             String path = "";
             for(int i = 1; i < words.length; i++){
