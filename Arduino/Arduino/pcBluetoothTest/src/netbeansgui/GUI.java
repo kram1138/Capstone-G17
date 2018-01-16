@@ -17,6 +17,7 @@ import java.util.Arrays;
  */
 public class GUI extends javax.swing.JFrame implements userinterface.UserInterface, Observer{
     private class GUIObservable extends Observable{
+    //Can't make GUI class extend Observable, so I store one instead.
         public void notify(String msg) {
             setChanged();
             notifyObservers(msg);
@@ -114,6 +115,8 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
         fileNameBox = new javax.swing.JTextField();
         setFileButton = new javax.swing.JButton();
         createPathButton = new javax.swing.JButton();
+        clearMessages = new javax.swing.JButton();
+        clearArduinoMessages = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -328,6 +331,22 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
             }
         });
 
+        clearMessages.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        clearMessages.setText("Clear Messages");
+        clearMessages.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                clearMessagesActionPerformed(evt);
+            }
+        });
+
+        clearArduinoMessages.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        clearArduinoMessages.setText("Clear Arduino Messages");
+        clearArduinoMessages.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                clearArduinoMessagesActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -366,9 +385,7 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(NodeNumberSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 56, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(showPath, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addComponent(clearPath, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(sendPath, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addComponent(sendPath, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(rightIntersection, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -388,85 +405,93 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
                         .addGap(18, 18, 18)
                         .addComponent(numberBox, javax.swing.GroupLayout.PREFERRED_SIZE, 252, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(38, 38, 38)
-                        .addComponent(jLabel4))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 186, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(28, 28, 28)
-                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(0, 119, Short.MAX_VALUE)
+                        .addComponent(jLabel4)
+                        .addGap(18, 18, Short.MAX_VALUE)
                         .addComponent(jLabel6)
                         .addGap(86, 86, 86)
                         .addComponent(quit))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane2)
-                        .addGap(11, 11, 11)))
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 186, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 341, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 424, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
+            .addGroup(layout.createSequentialGroup()
+                .addGap(312, 312, 312)
+                .addComponent(clearPath, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(162, 162, 162)
+                .addComponent(clearMessages)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(clearArduinoMessages)
+                .addGap(134, 134, 134))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(32, 32, 32)
-                .addComponent(listPorts)
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(Open)
-                    .addComponent(Close))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(setPortNameButton)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(portName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(32, 32, 32)
+                        .addComponent(listPorts)
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(Open)
+                            .addComponent(Close))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(setPortNameButton)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(portName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(stopCode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(setStopCodeButton))))
+                        .addGap(33, 33, 33)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(Start)
+                            .addComponent(Stop))
+                        .addGap(37, 37, 37)
+                        .addComponent(leftRoom)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(rightRoom)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(leftIntersection)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(rightIntersection)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(stopCode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(setStopCodeButton))))
-                .addGap(33, 33, 33)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(Start)
-                    .addComponent(Stop))
-                .addGap(37, 37, 37)
-                .addComponent(leftRoom)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(rightRoom)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(leftIntersection)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(rightIntersection)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(NodeNumberSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(nodeNumberButton))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(sendPath)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(clearPath)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(showPath)
-                .addGap(23, 23, 23)
-                .addComponent(fileNameBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(setFileButton)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(createPathButton)
-                .addContainerGap(286, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
-                .addGap(9, 9, 9)
+                            .addComponent(NodeNumberSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(nodeNumberButton))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(sendPath)
+                        .addGap(43, 43, 43)
+                        .addComponent(showPath)
+                        .addGap(23, 23, 23)
+                        .addComponent(fileNameBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(setFileButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(createPathButton))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(9, 9, 9)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(jLabel5)
+                                .addComponent(jLabel4)
+                                .addComponent(jLabel6)
+                                .addComponent(numberBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(quit, javax.swing.GroupLayout.Alignment.TRAILING))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(jScrollPane3, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 904, Short.MAX_VALUE)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane2))))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jLabel5)
-                        .addComponent(jLabel4)
-                        .addComponent(jLabel6)
-                        .addComponent(numberBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(quit, javax.swing.GroupLayout.Alignment.TRAILING))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1)
-                    .addComponent(jScrollPane2)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.Alignment.TRAILING))
-                .addContainerGap())
+                    .addComponent(clearPath)
+                    .addComponent(clearMessages)
+                    .addComponent(clearArduinoMessages)))
         );
 
         pack();
@@ -635,6 +660,14 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
         }
     }//GEN-LAST:event_createPathButtonActionPerformed
 
+    private void clearMessagesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearMessagesActionPerformed
+        Messages.setText("");
+    }//GEN-LAST:event_clearMessagesActionPerformed
+
+    private void clearArduinoMessagesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearArduinoMessagesActionPerformed
+        ArduinoMessages.setText("");
+    }//GEN-LAST:event_clearArduinoMessagesActionPerformed
+
     @Override
     public void update(String theMessage){
         Messages.append(theMessage + "\n");
@@ -656,6 +689,8 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
     private javax.swing.JTextArea PathField;
     private javax.swing.JButton Start;
     private javax.swing.JButton Stop;
+    private javax.swing.JButton clearArduinoMessages;
+    private javax.swing.JButton clearMessages;
     private javax.swing.JButton clearPath;
     private javax.swing.JButton createPathButton;
     private javax.swing.JTextField fileNameBox;

@@ -63,7 +63,7 @@ public class UserCommandHandler extends Observable implements Observer {
             if(words.length > 1){
                 sendMessage(words[1]);
             }else{
-                sendMessage("AAAAAAAAAA");
+                sendMessage("AAAAAAAAAA"); //default, in case observable screws this up
             }
             break;
         case "path":
