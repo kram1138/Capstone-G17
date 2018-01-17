@@ -10,7 +10,7 @@
 
 #define LED_PIN 13
 
-SoftwareSerial mySerial(1, 0); // set bluetooth serial communication
+//SoftwareSerial mySerial(1, 0); // set bluetooth serial communication
 
 ZumoReflectanceSensorArray reflectanceSensors;
 ZumoMotors motors;
@@ -75,13 +75,14 @@ int numTurns;
 void setup()
 {
   button.waitForButton();
-  mySerial.begin(115200);// set bluetooth serial baud rate of 115200
-  mySerial.println("Bluetooth Communication Established!");
+//  Serial.begin(4800);// set bluetooth serial baud rate
+  Serial.begin(4800, SERIAL_8E2);// set bluetooth serial baud rate, even parity, two stop bits
+  Serial.println("Bluetooth Communication Established!");
 
   // load map via bluetooth
   loadMap();
-  mySerial.println("Out of LoadMap!");
-  mySerial.println();
+  Serial.println("Out of LoadMap!");
+  Serial.println();
 
   // Initialize the reflectance sensors module
   reflectanceSensors.init();
@@ -164,26 +165,26 @@ void Navigate()
     if (bData.length() > 0) {
       if (bData == "pos") { //
         snprintf(printStr, PRINT_STR_BUFFER, "position: %d", position);
-        mySerial.print(printStr);
-        mySerial.print(ETB);
+        Serial.print(printStr);
+        Serial.print(ETB);
       } else if (bData == "speed") {
         snprintf(printStr, PRINT_STR_BUFFER, "mLSpeed: %d; mRSpeed: %d", mLSpeed, mRSpeed);
-        mySerial.print(printStr);
-        mySerial.print(ETB);
+        Serial.print(printStr);
+        Serial.print(ETB);
       } else if (bData == "stop") {
-        mySerial.print("Stopping...");
-        mySerial.print(ETB);
+        Serial.print("Stopping...");
+        Serial.print(ETB);
         max_speed = 0;
         motors.setSpeeds(max_speed, max_speed);
       } else if (bData == "start") {
-        mySerial.print("Starting...");
-        mySerial.print(ETB);
+        Serial.print("Starting...");
+        Serial.print(ETB);
         max_speed = MAX_SPEED;
         motors.setSpeeds(max_speed, max_speed);
       } else {
         snprintf(printStr, PRINT_STR_BUFFER, "Invalid Command: %s", bData.c_str());
-        mySerial.print(printStr);
-        mySerial.print(ETB);
+        Serial.print(printStr);
+        Serial.print(ETB);
       }
     }
     lastTime = millis();
@@ -207,7 +208,7 @@ void Navigate()
     // You probably want to use trial and error to tune these constants for
     // your particular Zumo and line course.
     int speedDifference = error / 4 + 6 * (error - lastError);
-    //    mySerial.println(speedDifference);
+    //    Serial.println(speedDifference);
     lastError = error;
 
     // Get individual motor speeds.  The sign of speedDifference
@@ -369,7 +370,7 @@ void populateTurnsArr(String *arr, const int arrSize) {
     splitByDelimiterIntoArray(arr[index], tempArr, DELIMITER_UNDERSCORE, arrIndex);
 
     snprintf(printStr, PRINT_STR_BUFFER, "\nTurn: %s; %s\n", tempArr[0].c_str(), tempArr[1].c_str());
-    mySerial.println(printStr);
+    Serial.println(printStr);
 
     turnsArr[index].turnDirection = tempArr[0];
     turnsArr[index].turnNode = tempArr[1].toInt();
@@ -406,12 +407,12 @@ void getMapDataString()
     mapData = readCmdFromBluetooth(false);
   } while (!(mapData.length() > 0));
 
-//  mySerial.println("MapData length > 0!");
-//  mySerial.println();
+//  Serial.println("MapData length > 0!");
+//  Serial.println();
 //
-//  mySerial.println("Read Data:");
-  mySerial.println(mapData);
-  mySerial.println();
+//  Serial.println("Read Data:");
+  Serial.println(mapData);
+  Serial.println();
 }
 
 bool getMapDataResponse()
@@ -438,8 +439,8 @@ bool getMapDataResponse()
     result = false;
   } else
   {
-    mySerial.println("Not found either consecutive A's or R's!");
-    mySerial.println();
+    Serial.println("Not found either consecutive A's or R's!");
+    Serial.println();
   }
   
   return result;
@@ -463,8 +464,8 @@ void loadMap()
 {
   String mapData = "";
 
-  mySerial.println("Starting loop to receive data...");
-  mySerial.println();
+  Serial.println("Starting loop to receive data...");
+  Serial.println();
   
   mapData = getMapData();
 
@@ -480,26 +481,26 @@ void loadMap()
   //      mapData.substring(mapData.indexOf(' ')).toCharArray(mapDataCharArr,(mapData.substring(mapData.indexOf(' '))).length()+1);
 
   snprintf(printStr, PRINT_STR_BUFFER, "\nData: %s\n", data.c_str());
-  mySerial.println(printStr);
+  Serial.println(printStr);
 
   // split the mapDataCharArr by space
   splitByDelimiterIntoArray(data, dataArr, DELIMITER_SPACE, numTurns);
   //      splitByDelimiterIntoArray(mapDataCharArr,tempArr,numTurns,DELIMITER_SPACE);
 
   snprintf(printStr, PRINT_STR_BUFFER, "\nSpace: %s\n", dataArr[0].c_str());
-  mySerial.println(printStr);
-  mySerial.println("Done split by space!");
-  mySerial.println();
+  Serial.println(printStr);
+  Serial.println("Done split by space!");
+  Serial.println();
 
   // use tempArr to create Turn objects and add them to turnsArr
   populateTurnsArr(dataArr, numTurns);
-  mySerial.println("Done populating TurnsArr!");
-  mySerial.println();
+  Serial.println("Done populating TurnsArr!");
+  Serial.println();
 
   for (int i = 0; i < numTurns; i++) {
     snprintf(printStr, PRINT_STR_BUFFER, "Turn: %s; Node: %d", (turnsArr[i].turnDirection).c_str(), turnsArr[i].turnNode);
-    mySerial.println(printStr);
-    mySerial.println();
+    Serial.println(printStr);
+    Serial.println();
   }
 }
 
@@ -526,16 +527,16 @@ boolean centered() {
     isCentered = false;
   }
 
-  //  mySerial.print(" "); mySerial.print(isCentered); mySerial.print(" | ");
+  //  Serial.print(" "); Serial.print(isCentered); Serial.print(" | ");
   //  for(int i=0; i< 6; i++) {
-  //    mySerial.print(sensors[i]);
-  //    mySerial.print(",");
+  //    Serial.print(sensors[i]);
+  //    Serial.print(",");
   //  }
-  //  mySerial.println();
+  //  Serial.println();
 
   //  time = micros() - time;
   //  snprintf(printStr,PRINT_STR_BUFFER,"Centered Function Time: %d",time);
-  //  mySerial.print(printStr);
+  //  Serial.print(printStr);
   return isCentered;
 }
 
@@ -552,8 +553,8 @@ String readCmdFromBluetooth(bool printBData) {
     incCmd = true;
   }
 
-  while (mySerial.available() > 0) {
-    temp = mySerial.read();//gets one byte from serial buffer
+  while (Serial.available() > 0) {
+    temp = Serial.read();//gets one byte from serial buffer
     if (temp == ETB) {// full command received after ETB (0x17) is read
       incCmd = false;
       break;
@@ -570,16 +571,16 @@ String readCmdFromBluetooth(bool printBData) {
     if (printBData)
     {
       snprintf(printStr, PRINT_STR_BUFFER, "\nbData: %s", bData.c_str());
-      mySerial.println(printStr);
+      Serial.println(printStr);
     }    
-    //    mySerial.println("Current bData:");
-    //    mySerial.println(bData);
-    //    mySerial.println();
+    //    Serial.println("Current bData:");
+    //    Serial.println(bData);
+    //    Serial.println();
     return bData;
   } else {
-    //    mySerial.println("Current bData:");
-    //    mySerial.println(bData);
-    //    mySerial.println();
+    //    Serial.println("Current bData:");
+    //    Serial.println(bData);
+    //    Serial.println();
     return (String)"";
   }
 }
@@ -627,7 +628,7 @@ void waitWhileTurning()
     reflectanceSensors.readLine(sensors); // read data from reflectance sensors
 
     //    snprintf(printStr,PRINT_STR_BUFFER,"Sensors: %d, %d, %d, %d, %d, %d",sensors[0],sensors[1],sensors[2],sensors[3],sensors[4],sensors[5]);
-    //    mySerial.println(printStr);
+    //    Serial.println(printStr);
 
     if (centered())
     {
@@ -635,7 +636,7 @@ void waitWhileTurning()
     }
   }
 
-  mySerial.println("Turning completed!"); mySerial.println();
+  Serial.println("Turning completed!"); Serial.println();
 
   // reset motor speeds to maxSpeed
   motors.setSpeeds(max_speed, max_speed);
@@ -644,8 +645,8 @@ void waitWhileTurning()
 void checkToTurn()
 {
   snprintf(printStr, PRINT_STR_BUFFER, "Nodes on Left: %d\nNodes on Right: %d\n", nodeL, nodeR);
-  mySerial.println(printStr);
-  mySerial.println(numTurns);
+  Serial.println(printStr);
+  Serial.println(numTurns);
   // proceeds if there are more turns to make
   if (currTurn < numTurns) {
     Turn theTurn = turnsArr[currTurn];// get curr turn
@@ -657,7 +658,7 @@ void checkToTurn()
       // it properly turns
       if (theTurn.turnNode == nodeL)
       {
-        mySerial.println("Turning left...");
+        Serial.println("Turning left...");
         currTurn++;
         motors.setSpeeds(-100, 150);
         waitWhileTurning();
@@ -668,14 +669,14 @@ void checkToTurn()
       // it properly turns
       if (theTurn.turnNode == nodeR)
       {
-        mySerial.println("Turning right...");
+        Serial.println("Turning right...");
         currTurn++;
         motors.setSpeeds(150, -100);
         waitWhileTurning();
       }
     }
   } else {
-    mySerial.println("Finished turning instructions!");
+    Serial.println("Finished turning instructions!");
   }
 }
 

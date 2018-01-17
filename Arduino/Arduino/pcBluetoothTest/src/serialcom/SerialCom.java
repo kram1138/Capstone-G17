@@ -46,7 +46,7 @@ public final class SerialCom extends Observable implements Runnable{
         try{
             if(!serialPort.isOpened()){
                 success = serialPort.openPort(); // open port for communication
-                success = success && serialPort.setParams(SerialPort.BAUDRATE_115200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_EVEN); 
+                success = success && serialPort.setParams(SerialPort.BAUDRATE_4800, SerialPort.DATABITS_8, SerialPort.STOPBITS_2, SerialPort.PARITY_EVEN);
                 // baudRate, numberOfDataBits, numberOfStopBits, parity
             }
         }catch (SerialPortException ex) {
