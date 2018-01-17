@@ -48,8 +48,8 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
                 //This message was sent from the arduino, not internally from this program.
                 String str = myText.substring(7, myText.length() - 2); // -2 to ignore the \r\n at the end
                 String pathString = Integer.toString(numNodes) + " " + path;
-                System.out.println("str is '" + str + "'");
-                System.out.println("path is '" + path + "'");
+//                System.out.println("str is '" + str + "'");
+//                System.out.println("path is '" + path + "'");
                 if(waitingForResponse && str.trim().equals(pathString.trim())){
                     waitingForResponse = false;
                     update("Successfully sent path to Robot and received confirmation.");
@@ -117,6 +117,7 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
         createPathButton = new javax.swing.JButton();
         clearMessages = new javax.swing.JButton();
         clearArduinoMessages = new javax.swing.JButton();
+        clearAll = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -347,6 +348,14 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
             }
         });
 
+        clearAll.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        clearAll.setText("Clear All");
+        clearAll.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                clearAllActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -397,7 +406,10 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
                         .addComponent(createPathButton))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(setFileButton)))
+                        .addComponent(setFileButton))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(clearAll, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(47, 47, 47)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
@@ -489,7 +501,9 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
                             .addComponent(jScrollPane2))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(clearPath)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(clearPath)
+                        .addComponent(clearAll))
                     .addComponent(clearMessages)
                     .addComponent(clearArduinoMessages)))
         );
@@ -574,6 +588,7 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
     private void clearPathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearPathActionPerformed
         PathField.setText("");
         path = new String("");
+        waitingForResponse = false;
     }//GEN-LAST:event_clearPathActionPerformed
 
     private void showPathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showPathActionPerformed
@@ -668,6 +683,14 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
         ArduinoMessages.setText("");
     }//GEN-LAST:event_clearArduinoMessagesActionPerformed
 
+    private void clearAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearAllActionPerformed
+        PathField.setText("");
+        path = new String("");
+        waitingForResponse = false;
+        Messages.setText("");
+        ArduinoMessages.setText("");
+    }//GEN-LAST:event_clearAllActionPerformed
+
     @Override
     public void update(String theMessage){
         Messages.append(theMessage + "\n");
@@ -689,6 +712,7 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
     private javax.swing.JTextArea PathField;
     private javax.swing.JButton Start;
     private javax.swing.JButton Stop;
+    private javax.swing.JButton clearAll;
     private javax.swing.JButton clearArduinoMessages;
     private javax.swing.JButton clearMessages;
     private javax.swing.JButton clearPath;
