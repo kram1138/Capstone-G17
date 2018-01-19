@@ -99,15 +99,18 @@ public class UserCommandHandler extends Observable implements Observer {
                 sendMessageToUI("No port was open");
             }                    
             break;
-        case "stopCode":
+        case "stopCode":// CHANGED THIS
             if(words.length > 1 && !words[1].isEmpty()){
                 int a = words[1].indexOf("0x");
                 if(a >= 0 && words[1].length() >= a + 4){ //valid 1-byte hex number
-                    myCom.STOP[0] = Byte.parseByte(words[1].substring(a+2,a+4), 16);
-                    myCom.STOP[1] = Byte.parseByte(words[1].substring(a+2,a+4), 16);
+                    byte[] theByte = {Byte.parseByte(words[1].substring(a+2,a+4), 16),};
+                    myCom.STOP[0] = theByte[0];
+                    myCom.STOP[1] = theByte[0];
+                    myCom.STOPBYTE = new String(theByte);
                 }else if(words[1].equalsIgnoreCase("CRLF")){ //carriage return + line feed
                     myCom.STOP[0] = CR;
                     myCom.STOP[1] = LF;
+                    myCom.STOPBYTE = "\r\n";
                 }else{
                     sendMessageToUI("Error: Stop Code must be either CRLF or a single byte hex number entered in the format 0xNN.\n"
                         + "Current Stop Code is " + (myCom.STOP[0] == CR && myCom.STOP[1] == LF ? "CRLF" : myCom.STOP[0]));
@@ -144,5 +147,6 @@ li
 ri
 
 path 3 li_2 ri_3 ri_4
-li_1 li_2 li_3 li_4 li_5 li_6 li_7 li_8 li_9 ri_1 ri_2 ri_3 ri_4 ri_5 ri_6 ri_7 ri_8 ri_9
+18 li_1 li_2 li_3 li_4 li_5 li_6 li_7 li_8 li_9 ri_1 ri_2 ri_3 ri_4 ri_5 ri_6 ri_7 ri_8 ri_9
+li_1 li_2 li_3 li_4 li_5 li_6 li_7 li_8 li_9 li_10 li_11 li_12 li_13 li_14 li_15 li_16 li_17 li_18 li_19 li_20 li_21 li_22 li_23 li_24 li_25 li_26 li_27 li_28 li_29 li_30 li_31 li_32 li_33 li_34 li_35 li_36 li_37 li_38 li_39 li_40
 */
