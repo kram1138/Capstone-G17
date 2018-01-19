@@ -14,8 +14,13 @@ Pushbutton button(ZUMO_BUTTON);// set zumo button
 const char CONSEC_A = 'A'; // char A to be used in consecutive check
 const char CONSEC_O = 'O'; // char O to be used in consecutive check
 const char ETB = 0x17;// END OF TRANSMISSION BLOCK 0x0D;//
+const char MOVE_FORWARD = 'f';
+const char TURN_LEFT = 'l';
+const char TURN_RIGHT = 'r';
+const char ROOM_ON_LEFT = 'a';
+const char ROOM_ON_RIGHT = 'd';
 const int CONSEC_MIN_LEN = 5; // min length for consecutive check
-const int MAX_SPEED = 150;// max allowed speed for the motors to turn. Top speed is 400.
+const int MAX_SPEED = 175;// max allowed speed for the motors to turn. Top speed is 400.
 const int MIN_CONSEC_COUNT = 3;// min consecutive times line read to eliminate false positive.
 const int MIN_LINE_FOUND = 750;// min value from refletance sensor to confirm line is found
 const int NUM_OF_SENSORS = 6;// number of reflectance sensors
@@ -50,15 +55,15 @@ int max_speed = MAX_SPEED;// max allowed speed
 String bData = "";// string to store recieved serial commands
 //String mapData = "";
 unsigned int sensors[NUM_OF_SENSORS];// array to store values from reflectance sensors
-String *mapArr;
+char *mapArr;
 //Turn *turnsArr;
 
 // declare node id variables
 int countL = 0;// counting left node's consecutive readings
 int countR = 0;// counting right node's consecutive readings
 int currTurn = 0;
-int nodeL = 0;// counting number of left nodes
-int nodeR = 0;// counting number of right nodes
+//int nodeL = 0;// counting number of left nodes
+//int nodeR = 0;// counting number of right nodes
 
 const int delayTime = 500;
 const int threshold = 20;
@@ -190,6 +195,8 @@ void Navigate()
   // call method to check if arrived at a node
   checkNodes();
 
+  if (state == 0)
+  {
   // ONLY correct direction if the line is not detected from one of the middle
   // sensors or if the two sensors on both end detect a line.
   if (!centered()) {
@@ -230,6 +237,10 @@ void Navigate()
     motors.setSpeeds(mLSpeed, mRSpeed);
   } else {
     motors.setSpeeds(max_speed, max_speed);
+  }
+  } else
+  {
+    motors.setSpeeds(0,0);
   }
 }
 
@@ -486,6 +497,7 @@ void loadMap()
 
   int spaceIndex = mapData.indexOf(' ');
   numTurns = mapData.substring(0, spaceIndex).toInt();
+  mapArr = malloc(sizeof(char) * numTurns);
 //  turnsArr = malloc(sizeof(Turn) * numTurns);
   //      char *tempArr[numTurns];
   String dataArr[numTurns];
@@ -510,9 +522,10 @@ void loadMap()
   Serial.print(printStr);
   Serial.print(ETB);
 
-  mapArr = dataArr;
+//  mapArr = dataArr;
   for (int i = 0; i < numTurns; i++) {
-    snprintf(printStr, PRINT_STR_BUFFER, "Turn%d: %s\n", i+1,mapArr[i].c_str());
+    mapArr[i] = dataArr[i][0];
+    snprintf(printStr, PRINT_STR_BUFFER, "Turn%d: %c\n", i+1,mapArr[i]);
     Serial.print(printStr);
     Serial.print(ETB);
   }
@@ -620,6 +633,8 @@ String readCmdFromBluetooth(bool printBData) {
 
 void checkNodes()
 {
+  bool foundIntersection = false;
+  
   // check line read at left end sensor
   if (sensors[REFL_SENSOR_LEFT_END] > MIN_LINE_FOUND)
   {
@@ -628,8 +643,7 @@ void checkNodes()
     // increment nodeL if read line at left sensor MIN_CONSEC_COUNT times
     if (countL == MIN_CONSEC_COUNT)
     {
-      nodeL++;
-      checkToTurn();
+      foundIntersection = true;
     }
   } else // reset countL if no line was found
   {
@@ -644,12 +658,16 @@ void checkNodes()
     // increment nodeR if read line at right sensor MIN_CONSEC_COUNT times
     if (countR == MIN_CONSEC_COUNT)
     {
-      nodeR++;
-      checkToTurn();
+      foundIntersection = true;
     }
   } else // reset countR if no line was found
   {
     countR = RESET;
+  }
+
+  if (foundIntersection)
+  {
+    checkToTurn();
   }
 }
 
@@ -677,43 +695,68 @@ void waitWhileTurning()
 
 void checkToTurn()
 {
-  snprintf(printStr, PRINT_STR_BUFFER, "Nodes on Left: %d\nNodes on Right: %d\n", nodeL, nodeR);
-  Serial.print(printStr);Serial.print(ETB);
-  Serial.print(numTurns);Serial.print(ETB);
+//  snprintf(printStr, PRINT_STR_BUFFER, "Nodes on Left: %d\nNodes on Right: %d\n", nodeL, nodeR);
+//  Serial.print(printStr);Serial.print(ETB);
+//  Serial.print(numTurns);Serial.print(ETB);
   // proceeds if there are more turns to make
   if (currTurn < numTurns) {
-    String theTurnSplit[2];
-    String turnDirection;
-    int turnNode;
+      char turnDirection = mapArr[currTurn];
+      Serial.print(turnDirection);Serial.print(ETB);
+//    String theTurnSplit[2];
+//    String turnDirection;
+//    int turnNode;
+//    
+//    splitByDelimiterIntoArray(mapArr[currTurn], theTurnSplit, DELIMITER_UNDERSCORE, 2);
+//
+//    turnDirection = theTurnSplit[0];
+//    turnNode = theTurnSplit[1].toInt();
     
-    splitByDelimiterIntoArray(mapArr[currTurn], theTurnSplit, DELIMITER_UNDERSCORE, 2);
-
-    turnDirection = theTurnSplit[0];
-    turnNode = theTurnSplit[1].toInt();
-    
-    if (turnDirection == LEFT_INTERSECTION)
+//    if (turnDirection == LEFT_INTERSECTION)
+    if (turnDirection == TURN_LEFT)
     {
       // if curr turn direction is left
       // and turn node equals nodeL then
       // it properly turns
-      if (turnNode == nodeL)
-      {
+//      if (turnNode == nodeL)
+//      {
         Serial.print("Turning left...");Serial.print(ETB);
         currTurn++;
         motors.setSpeeds(-100, 150);
         waitWhileTurning();
-      }
-    } else { // right direction
+//      }
+    } else if (turnDirection == TURN_RIGHT)
+    { // right direction
       // if curr turn direction is right
       // and turn node equals nodeR then
       // it properly turns
-      if (turnNode == nodeR)
-      {
+//      if (turnNode == nodeR)
+//      {
         Serial.print("Turning right...");Serial.print(ETB);
         currTurn++;
         motors.setSpeeds(150, -100);
         waitWhileTurning();
-      }
+//      }
+    } else if (turnDirection == MOVE_FORWARD)
+    {
+      Serial.print("Going straight...");Serial.print(ETB);
+      currTurn++;
+    } else if (turnDirection == ROOM_ON_LEFT)
+    {
+      Serial.print("Turning to left room...");Serial.print(ETB);
+      currTurn++;
+      motors.setSpeeds(-100, 150);
+      waitWhileTurning();
+      state = 1;
+    } else if (turnDirection == ROOM_ON_RIGHT)
+    {
+      Serial.print("Turning to right room...");Serial.print(ETB);
+      currTurn++;
+      motors.setSpeeds(150, -100);
+      waitWhileTurning();
+      state = 1;
+    } else
+    {
+      Serial.print("UNRECOGNIZED COMMAND: ");Serial.print(turnDirection);Serial.print(ETB);
     }
   } else {
     Serial.print("Finished turning instructions!");Serial.print(ETB);
