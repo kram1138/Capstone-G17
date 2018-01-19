@@ -46,7 +46,7 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
             String myText = (String)arg;
             if(myText.contains("Arduino") && myText.substring(0, 7).equals("Arduino")){
                 //This message was sent from the arduino, not internally from this program.
-                String str = myText.substring(7, myText.length() - 2); // -2 to ignore the \r\n at the end
+                String str = myText.substring(7, myText.length()); // -2 to ignore the \r\n at the end // CHANGED THIS (no need for -2)
                 String pathString = Integer.toString(numNodes) + " " + path;
 //                System.out.println("str is '" + str + "'");
 //                System.out.println("path is '" + path + "'");

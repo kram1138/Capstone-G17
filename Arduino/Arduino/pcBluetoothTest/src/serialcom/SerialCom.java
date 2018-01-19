@@ -13,11 +13,13 @@ public final class SerialCom extends Observable implements Runnable{
 
     static final byte CR = 0x0D;
     static final byte LF = 0x0A;
+    static final byte ETB = 0x17;
 
     private SerialPort serialPort;
     
 //    public byte[] STOP = {CR, LF};
     public byte[] STOP = {0x17, 0x17};
+    public String STOPBYTE = "\r";
     
     boolean stopThisThread = false;
     
@@ -46,7 +48,7 @@ public final class SerialCom extends Observable implements Runnable{
         try{
             if(!serialPort.isOpened()){
                 success = serialPort.openPort(); // open port for communication
-                success = success && serialPort.setParams(SerialPort.BAUDRATE_115200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_EVEN); 
+                success = success && serialPort.setParams(SerialPort.BAUDRATE_38400, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE); 
                 // baudRate, numberOfDataBits, numberOfStopBits, parity
             }
         }catch (SerialPortException ex) {
@@ -71,16 +73,6 @@ public final class SerialCom extends Observable implements Runnable{
         try {
             success = serialPort.writeBytes(message.getBytes());
             success = success && serialPort.writeBytes(STOP);
-        } catch (SerialPortException ex) {
-            System.out.println(ex);
-        }
-        return success;
-    }
-    
-    public boolean write(byte message){
-        boolean success = false;
-        try {
-            success = serialPort.writeByte(message);
         } catch (SerialPortException ex) {
             System.out.println(ex);
         }
@@ -123,11 +115,18 @@ public final class SerialCom extends Observable implements Runnable{
                     if(msgFromServer != null){
                         data += msgFromServer;
                     }
-                    if(data.contains("\r\n")){
-                        notify("Arduino" + data);
+                    if(data.contains(STOPBYTE)){ // CHANGED THIS
+                        int index = data.indexOf(STOPBYTE);
+//                        System.out.println(data + " ; " + index + data.substring(0, index));                        
+                        notify("Arduino" + data.substring(0, index));
                         //"Arduino" indicates to observer that the message came 
                         //from the server, not from this program.
-                        data = "";
+                        if ((index+1) < data.length()){
+                            data = data.substring(index+1);
+                        } else {
+                            data = "";
+                        }
+                        System.out.println(data);
                     }
                 } catch (SerialPortException ex) {
                     if(stopThisThread == false) {
