@@ -9,7 +9,6 @@
 
 #define LED_PIN 13
 
-//SoftwareSerial mySerial(1, 0); // set bluetooth serial communication
 ZumoReflectanceSensorArray reflectanceSensors;
 ZumoMotors motors;
 Pushbutton button(ZUMO_BUTTON);// set zumo button
@@ -200,50 +199,50 @@ void Navigate()
 
   if (state == 0)
   {
-  // ONLY correct direction if the line is not detected from one of the middle
-  // sensors or if the two sensors on both end detect a line.
-  if (!centered()) {
+    // ONLY correct direction if the line is not detected from one of the middle
+    // sensors or if the two sensors on both end detect a line.
+    if (!centered()) {
 
-    // Our "error" is how far we are away from the center of the line, which
-    // corresponds to position 2500.
-    int error = position - 2500;
+      // Our "error" is how far we are away from the center of the line, which
+      // corresponds to position 2500.
+      int error = position - 2500;
 
-    // Get motor speed difference using proportional and derivative PID terms
-    // (the integral term is generally not very useful for line following).
-    // Here we are using a proportional constant of 1/4 and a derivative
-    // constant of 6, which should work decently for many Zumo motor choices.
-    // You probably want to use trial and error to tune these constants for
-    // your particular Zumo and line course.
-    int speedDifference = error / 4 + 6 * (error - lastError);
-    //    Serial.println(speedDifference);
-    lastError = error;
+      // Get motor speed difference using proportional and derivative PID terms
+      // (the integral term is generally not very useful for line following).
+      // Here we are using a proportional constant of 1/4 and a derivative
+      // constant of 6, which should work decently for many Zumo motor choices.
+      // You probably want to use trial and error to tune these constants for
+      // your particular Zumo and line course.
+      int speedDifference = error / 4 + 6 * (error - lastError);
+      //    Serial.println(speedDifference);
+      lastError = error;
 
-    // Get individual motor speeds.  The sign of speedDifference
-    // determines if the robot turns left or right.
-    mLSpeed = max_speed + speedDifference;
-    mRSpeed = max_speed - speedDifference;
+      // Get individual motor speeds.  The sign of speedDifference
+      // determines if the robot turns left or right.
+      mLSpeed = max_speed + speedDifference;
+      mRSpeed = max_speed - speedDifference;
 
-    // Here we constrain our motor speeds to be between 0 and max_speed.
-    // Generally speaking, one motor will always be turning at max_speed
-    // and the other will be at max_speed-|speedDifference| if that is positive,
-    // else it will be stationary.  For some applications, you might want to
-    // allow the motor speed to go negative so that it can spin in reverse.
-    if (mLSpeed < 0)
-      mLSpeed = 0;
-    if (mRSpeed < 0)
-      mRSpeed = 0;
-    if (mLSpeed > max_speed)
-      mLSpeed = max_speed;
-    if (mRSpeed > max_speed)
-      mRSpeed = max_speed;
+      // Here we constrain our motor speeds to be between 0 and max_speed.
+      // Generally speaking, one motor will always be turning at max_speed
+      // and the other will be at max_speed-|speedDifference| if that is positive,
+      // else it will be stationary.  For some applications, you might want to
+      // allow the motor speed to go negative so that it can spin in reverse.
+      if (mLSpeed < 0)
+        mLSpeed = 0;
+      if (mRSpeed < 0)
+        mRSpeed = 0;
+      if (mLSpeed > max_speed)
+        mLSpeed = max_speed;
+      if (mRSpeed > max_speed)
+        mRSpeed = max_speed;
 
-    motors.setSpeeds(mLSpeed, mRSpeed);
-  } else {
-    motors.setSpeeds(max_speed, max_speed);
-  }
+      motors.setSpeeds(mLSpeed, mRSpeed);
+    } else {
+      motors.setSpeeds(max_speed, max_speed);
+    }
   } else
   {
-    motors.setSpeeds(0,0);
+    motors.setSpeeds(0, 0);
   }
 }
 
@@ -403,35 +402,35 @@ bool checkForConsecutives(String msg, char consec)
       consecCount = 0;
     }
   }
-  
+
   if (consecCount >= CONSEC_MIN_LEN)
   {
     found = true;
   }
-  
+
   return found;
 }
 
 String getMapDataString()
 {
   String mapData = "";
-//  unsigned long currMil = 0;
+  //  unsigned long currMil = 0;
   do
   {
     mapData = readCmdFromBluetooth(false);
-//    currMil = millis();
-//    if ((currMil - lastMil) > 5000) {
-//      lastMil = currMil;
-//      Serial.print("bData: ");
-//      Serial.print(bData);
-//      Serial.print(ETB);
-//    }
+    //    currMil = millis();
+    //    if ((currMil - lastMil) > 5000) {
+    //      lastMil = currMil;
+    //      Serial.print("bData: ");
+    //      Serial.print(bData);
+    //      Serial.print(ETB);
+    //    }
   } while (!(mapData.length() > 0));
 
-//  Serial.println("MapData length > 0!");
-//  Serial.println();
-//
-//  Serial.println("Read Data:");
+  //  Serial.println("MapData length > 0!");
+  //  Serial.println();
+  //
+  //  Serial.println("Read Data:");
   Serial.print(mapData);
   Serial.print(ETB);
   return mapData;
@@ -450,8 +449,8 @@ bool getMapDataResponse()
 
   } while (!(response.length() > 0));
 
-  resultA = checkForConsecutives(response,CONSEC_A);
-  resultO = checkForConsecutives(response,CONSEC_O);
+  resultA = checkForConsecutives(response, CONSEC_A);
+  resultO = checkForConsecutives(response, CONSEC_O);
 
   if (!resultO && resultA)
   {
@@ -464,304 +463,306 @@ bool getMapDataResponse()
     snprintf(printStr, PRINT_STR_BUFFER, "Not found either consecutive A's or R's!\n");
     Serial.print(printStr);
     Serial.print(ETB);
-//    Serial.println("Not found either consecutive A's or R's!");
-//    Serial.println();
-  
-  return result;
+    //    Serial.println("Not found either consecutive A's or R's!");
+    //    Serial.println();
+
+    return result;
+  }
 }
 
-String getMapData()
-{
-  bool correctMapData = false;
-  String mapData = "";
-  
-  do
+  String getMapData()
   {
-    mapData = getMapDataString();
-    correctMapData = getMapDataResponse();
+    bool correctMapData = false;
+    String mapData = "";
 
-  } while (!correctMapData);
+    do
+    {
+      mapData = getMapDataString();
+      correctMapData = getMapDataResponse();
 
-  return mapData;
-}
+    } while (!correctMapData);
 
-void loadMap()
-{
-  String mapData = "";
-  
-  snprintf(printStr, PRINT_STR_BUFFER, "Starting loop to receive data...\n");
-  Serial.print(printStr);
-  Serial.print(ETB);
-//  Serial.println("Starting loop to receive data...");
-//  Serial.println();
-  
-  mapData = getMapData();
+    return mapData;
+  }
 
-  int spaceIndex = mapData.indexOf(' ');
-  numTurns = mapData.substring(0, spaceIndex).toInt();
-  mapArr = malloc(sizeof(char) * numTurns);
-//  turnsArr = malloc(sizeof(Turn) * numTurns);
-  //      char *tempArr[numTurns];
-  String dataArr[numTurns];
-  //      char mapDataCharArr[(mapData.substring(mapData.indexOf(' '))).length()+1];
-  String data = mapData.substring(spaceIndex + 1);// removes turns number from the front
+  void loadMap()
+  {
+    String mapData = "";
 
-  // ignore count in the mapData for tokenizing
-  //      mapData.substring(mapData.indexOf(' ')).toCharArray(mapDataCharArr,(mapData.substring(mapData.indexOf(' '))).length()+1);
-
-  snprintf(printStr, PRINT_STR_BUFFER, "\nData: %s\n", data.c_str());
-  Serial.print(printStr);
-  Serial.print(ETB);
-
-  // split the mapDataCharArr by space
-  splitByDelimiterIntoArray(data, dataArr, DELIMITER_SPACE, numTurns);
-  //      splitByDelimiterIntoArray(mapDataCharArr,tempArr,numTurns,DELIMITER_SPACE);
-
-//  snprintf(printStr, PRINT_STR_BUFFER, "\nSpace: %s\n", dataArr[0].c_str());
-//  Serial.print(printStr);
-//  Serial.print(ETB);
-  snprintf(printStr, PRINT_STR_BUFFER, "Done split by space!\n");
-  Serial.print(printStr);
-  Serial.print(ETB);
-
-//  mapArr = dataArr;
-  for (int i = 0; i < numTurns; i++) {
-    mapArr[i] = dataArr[i][0];
-    snprintf(printStr, PRINT_STR_BUFFER, "Turn%d: %c\n", i+1,mapArr[i]);
+    snprintf(printStr, PRINT_STR_BUFFER, "Starting loop to receive data...\n");
     Serial.print(printStr);
     Serial.print(ETB);
-  }
-  
-//  Serial.println("Done split by space!");
-//  Serial.println();
+    //  Serial.println("Starting loop to receive data...");
+    //  Serial.println();
 
-  // use tempArr to create Turn objects and add them to turnsArr
-//  populateTurnsArr(dataArr, numTurns);
-//  snprintf(printStr, PRINT_STR_BUFFER, "Done populating TurnsArr!\n");
-//  Serial.print(printStr);
-//  Serial.print(ETB);
-//  Serial.println("Done populating TurnsArr!");
-//  Serial.println();
+    mapData = getMapData();
 
-//  for (int i = 0; i < numTurns; i++) {
-//    snprintf(printStr, PRINT_STR_BUFFER, "Turn: %s; Node: %d\n", (turnsArr[i].turnDirection).c_str(), turnsArr[i].turnNode);
-//    Serial.print(printStr);
-//    Serial.print(ETB);
-////    Serial.println();
-//  }
-}
+    int spaceIndex = mapData.indexOf(' ');
+    numTurns = mapData.substring(0, spaceIndex).toInt();
+    mapArr = malloc(sizeof(char) * numTurns);
+    //  turnsArr = malloc(sizeof(Turn) * numTurns);
+    //      char *tempArr[numTurns];
+    String dataArr[numTurns];
+    //      char mapDataCharArr[(mapData.substring(mapData.indexOf(' '))).length()+1];
+    String data = mapData.substring(spaceIndex + 1);// removes turns number from the front
 
-// This method takes in the value from the 6 sensors, then creates a
-// boolean array with value true if that sensor found the line otherwise
-// inputs value false. It then sets the isCentered boolean variable to
-// true only if either the two middle sensors detected and the number of
-// lines detected is less
-boolean centered() {
-  //  unsigned int time = 0;
-  //  time = micros();
+    // ignore count in the mapData for tokenizing
+    //      mapData.substring(mapData.indexOf(' ')).toCharArray(mapDataCharArr,(mapData.substring(mapData.indexOf(' '))).length()+1);
 
-  boolean isCentered;
+    snprintf(printStr, PRINT_STR_BUFFER, "\nData: %s\n", data.c_str());
+    Serial.print(printStr);
+    Serial.print(ETB);
 
-  // Sets isCentered boolean to true if only either the middle two sensors
-  // find the line otherwise boolean value of false is set.
-  if ((sensors[0] < MIN_LINE_FOUND and sensors[5] < MIN_LINE_FOUND and
-       sensors[1] < MIN_LINE_FOUND and sensors[4] < MIN_LINE_FOUND) and
-      (sensors[REFL_SENSOR_LEFT_MIDDLE] > MIN_LINE_FOUND or
-       sensors[REFL_SENSOR_RIGHT_MIDDLE] > MIN_LINE_FOUND))
-  {
-    isCentered = true;
-  } else {
-    isCentered = false;
-  }
+    // split the mapDataCharArr by space
+    splitByDelimiterIntoArray(data, dataArr, DELIMITER_SPACE, numTurns);
+    //      splitByDelimiterIntoArray(mapDataCharArr,tempArr,numTurns,DELIMITER_SPACE);
 
-  //  Serial.print(" "); Serial.print(isCentered); Serial.print(" | ");
-  //  for(int i=0; i< 6; i++) {
-  //    Serial.print(sensors[i]);
-  //    Serial.print(",");
-  //  }
-  //  Serial.println();
+    //  snprintf(printStr, PRINT_STR_BUFFER, "\nSpace: %s\n", dataArr[0].c_str());
+    //  Serial.print(printStr);
+    //  Serial.print(ETB);
+    snprintf(printStr, PRINT_STR_BUFFER, "Done split by space!\n");
+    Serial.print(printStr);
+    Serial.print(ETB);
 
-  //  time = micros() - time;
-  //  snprintf(printStr,PRINT_STR_BUFFER,"Centered Function Time: %d",time);
-  //  Serial.print(printStr);
-  return isCentered;
-}
-
-// This method reads each character from the bluetooth serial every 300ms
-// while there are bytes available in input buffer or "enter" (0x0D) is
-// read. It stores the characters read in String called bData which gets
-// returned after it is trimmed and printed to bluetooth serial.
-String readCmdFromBluetooth(bool printBData) {
-  //  String bData = "";
-  char temp;
-
-  if (!incCmd) {
-    bData = "";
-    incCmd = true;
-  }
-
-  while (Serial.available() > 0) {
-    temp = Serial.read();//gets one byte from serial buffer
-    if (temp == ETB) {// full command received after ETB (0x17) is read
-      incCmd = false;
-      break;
-    }//breaks out of capture loop when enter is pressed
-
-    bData += temp;
-
-//    delay(10);//small delay to allow input buffer to fill
-  }//makes the string bData
-
-  if (bData != "" and !incCmd) {
-    bData.trim();
-
-    if (printBData)
-    {
-      snprintf(printStr, PRINT_STR_BUFFER, "\nbData: %s", bData.c_str());
+    //  mapArr = dataArr;
+    for (int i = 0; i < numTurns; i++) {
+      mapArr[i] = dataArr[i][0];
+      snprintf(printStr, PRINT_STR_BUFFER, "Turn%d: %c\n", i + 1, mapArr[i]);
       Serial.print(printStr);
       Serial.print(ETB);
-    }    
-    //    Serial.println("Current bData:");
-    //    Serial.println(bData);
-    //    Serial.println();
-    return bData;
-  } else {
-    //    Serial.println("Current bData:");
-    //    Serial.println(bData);
-    //    Serial.println();
-    return (String)"";
-  }
-}
-
-void checkNodes()
-{
-  bool foundIntersection = false;
-  
-  // check line read at left end sensor
-  if (sensors[REFL_SENSOR_LEFT_END] > MIN_LINE_FOUND)
-  {
-    countL++;
-
-    // increment nodeL if read line at left sensor MIN_CONSEC_COUNT times
-    if (countL == MIN_CONSEC_COUNT)
-    {
-      foundIntersection = true;
     }
-  } else // reset countL if no line was found
-  {
-    countL = RESET;
+
+    //  Serial.println("Done split by space!");
+    //  Serial.println();
+
+    // use tempArr to create Turn objects and add them to turnsArr
+    //  populateTurnsArr(dataArr, numTurns);
+    //  snprintf(printStr, PRINT_STR_BUFFER, "Done populating TurnsArr!\n");
+    //  Serial.print(printStr);
+    //  Serial.print(ETB);
+    //  Serial.println("Done populating TurnsArr!");
+    //  Serial.println();
+
+    //  for (int i = 0; i < numTurns; i++) {
+    //    snprintf(printStr, PRINT_STR_BUFFER, "Turn: %s; Node: %d\n", (turnsArr[i].turnDirection).c_str(), turnsArr[i].turnNode);
+    //    Serial.print(printStr);
+    //    Serial.print(ETB);
+    ////    Serial.println();
+    //  }
   }
 
-  // check line read at right end sensor
-  if (sensors[REFL_SENSOR_RIGHT_END] > MIN_LINE_FOUND)
-  {
-    countR++;
+  // This method takes in the value from the 6 sensors, then creates a
+  // boolean array with value true if that sensor found the line otherwise
+  // inputs value false. It then sets the isCentered boolean variable to
+  // true only if either the two middle sensors detected and the number of
+  // lines detected is less
+  boolean centered() {
+    //  unsigned int time = 0;
+    //  time = micros();
 
-    // increment nodeR if read line at right sensor MIN_CONSEC_COUNT times
-    if (countR == MIN_CONSEC_COUNT)
+    boolean isCentered;
+
+    // Sets isCentered boolean to true if only either the middle two sensors
+    // find the line otherwise boolean value of false is set.
+    if ((sensors[0] < MIN_LINE_FOUND and sensors[5] < MIN_LINE_FOUND and
+         sensors[1] < MIN_LINE_FOUND and sensors[4] < MIN_LINE_FOUND) and
+        (sensors[REFL_SENSOR_LEFT_MIDDLE] > MIN_LINE_FOUND or
+         sensors[REFL_SENSOR_RIGHT_MIDDLE] > MIN_LINE_FOUND))
     {
-      foundIntersection = true;
+      isCentered = true;
+    } else {
+      isCentered = false;
     }
-  } else // reset countR if no line was found
-  {
-    countR = RESET;
+
+    //  Serial.print(" "); Serial.print(isCentered); Serial.print(" | ");
+    //  for(int i=0; i< 6; i++) {
+    //    Serial.print(sensors[i]);
+    //    Serial.print(",");
+    //  }
+    //  Serial.println();
+
+    //  time = micros() - time;
+    //  snprintf(printStr,PRINT_STR_BUFFER,"Centered Function Time: %d",time);
+    //  Serial.print(printStr);
+    return isCentered;
   }
 
-  if (foundIntersection)
-  {
-    checkToTurn();
+  // This method reads each character from the bluetooth serial every 300ms
+  // while there are bytes available in input buffer or "enter" (0x0D) is
+  // read. It stores the characters read in String called bData which gets
+  // returned after it is trimmed and printed to bluetooth serial.
+  String readCmdFromBluetooth(bool printBData) {
+    //  String bData = "";
+    char temp;
+
+    if (!incCmd) {
+      bData = "";
+      incCmd = true;
+    }
+
+    while (Serial.available() > 0) {
+      temp = Serial.read();//gets one byte from serial buffer
+      if (temp == ETB) {// full command received after ETB (0x17) is read
+        incCmd = false;
+        break;
+      }//breaks out of capture loop when enter is pressed
+
+      bData += temp;
+
+      //    delay(10);//small delay to allow input buffer to fill
+    }//makes the string bData
+
+    if (bData != "" and !incCmd) {
+      bData.trim();
+
+      if (printBData)
+      {
+        snprintf(printStr, PRINT_STR_BUFFER, "\nbData: %s", bData.c_str());
+        Serial.print(printStr);
+        Serial.print(ETB);
+      }
+      //    Serial.println("Current bData:");
+      //    Serial.println(bData);
+      //    Serial.println();
+      return bData;
+    } else {
+      //    Serial.println("Current bData:");
+      //    Serial.println(bData);
+      //    Serial.println();
+      return (String)"";
+    }
   }
-}
 
-void waitWhileTurning()
-{
-  bool fullyTurned = false;
+  void checkNodes()
+  {
+    bool foundIntersection = false;
 
-  while (!fullyTurned) {
-    reflectanceSensors.readLine(sensors); // read data from reflectance sensors
-
-    //    snprintf(printStr,PRINT_STR_BUFFER,"Sensors: %d, %d, %d, %d, %d, %d",sensors[0],sensors[1],sensors[2],sensors[3],sensors[4],sensors[5]);
-    //    Serial.println(printStr);
-
-    if (centered())
+    // check line read at left end sensor
+    if (sensors[REFL_SENSOR_LEFT_END] > MIN_LINE_FOUND)
     {
-      fullyTurned = true;
+      countL++;
+
+      // increment nodeL if read line at left sensor MIN_CONSEC_COUNT times
+      if (countL == MIN_CONSEC_COUNT)
+      {
+        foundIntersection = true;
+      }
+    } else // reset countL if no line was found
+    {
+      countL = RESET;
+    }
+
+    // check line read at right end sensor
+    if (sensors[REFL_SENSOR_RIGHT_END] > MIN_LINE_FOUND)
+    {
+      countR++;
+
+      // increment nodeR if read line at right sensor MIN_CONSEC_COUNT times
+      if (countR == MIN_CONSEC_COUNT)
+      {
+        foundIntersection = true;
+      }
+    } else // reset countR if no line was found
+    {
+      countR = RESET;
+    }
+
+    if (foundIntersection)
+    {
+      checkToTurn();
     }
   }
 
-  Serial.print("Turning completed!"); Serial.print(ETB);
+  void waitWhileTurning()
+  {
+    bool fullyTurned = false;
 
-  // reset motor speeds to maxSpeed
-  motors.setSpeeds(max_speed, max_speed);
-}
+    while (!fullyTurned) {
+      reflectanceSensors.readLine(sensors); // read data from reflectance sensors
 
-void checkToTurn()
-{
-//  snprintf(printStr, PRINT_STR_BUFFER, "Nodes on Left: %d\nNodes on Right: %d\n", nodeL, nodeR);
-//  Serial.print(printStr);Serial.print(ETB);
-//  Serial.print(numTurns);Serial.print(ETB);
-  // proceeds if there are more turns to make
-  if (currTurn < numTurns) {
+      //    snprintf(printStr,PRINT_STR_BUFFER,"Sensors: %d, %d, %d, %d, %d, %d",sensors[0],sensors[1],sensors[2],sensors[3],sensors[4],sensors[5]);
+      //    Serial.println(printStr);
+
+      if (centered())
+      {
+        fullyTurned = true;
+      }
+    }
+
+    Serial.print("Turning completed!"); Serial.print(ETB);
+
+    // reset motor speeds to maxSpeed
+    motors.setSpeeds(max_speed, max_speed);
+  }
+
+  void checkToTurn()
+  {
+    //  snprintf(printStr, PRINT_STR_BUFFER, "Nodes on Left: %d\nNodes on Right: %d\n", nodeL, nodeR);
+    //  Serial.print(printStr);Serial.print(ETB);
+    //  Serial.print(numTurns);Serial.print(ETB);
+    // proceeds if there are more turns to make
+    if (currTurn < numTurns) {
       char turnDirection = mapArr[currTurn];
-      Serial.print(turnDirection);Serial.print(ETB);
-//    String theTurnSplit[2];
-//    String turnDirection;
-//    int turnNode;
-//    
-//    splitByDelimiterIntoArray(mapArr[currTurn], theTurnSplit, DELIMITER_UNDERSCORE, 2);
-//
-//    turnDirection = theTurnSplit[0];
-//    turnNode = theTurnSplit[1].toInt();
-    
-//    if (turnDirection == LEFT_INTERSECTION)
-    if (turnDirection == TURN_LEFT)
-    {
-      // if curr turn direction is left
-      // and turn node equals nodeL then
-      // it properly turns
-//      if (turnNode == nodeL)
-//      {
-        Serial.print("Turning left...");Serial.print(ETB);
+      Serial.print(turnDirection); Serial.print(ETB);
+      //    String theTurnSplit[2];
+      //    String turnDirection;
+      //    int turnNode;
+      //
+      //    splitByDelimiterIntoArray(mapArr[currTurn], theTurnSplit, DELIMITER_UNDERSCORE, 2);
+      //
+      //    turnDirection = theTurnSplit[0];
+      //    turnNode = theTurnSplit[1].toInt();
+
+      //    if (turnDirection == LEFT_INTERSECTION)
+      if (turnDirection == TURN_LEFT)
+      {
+        // if curr turn direction is left
+        // and turn node equals nodeL then
+        // it properly turns
+        //      if (turnNode == nodeL)
+        //      {
+        Serial.print("Turning left..."); Serial.print(ETB);
         currTurn++;
         motors.setSpeeds(-100, 150);
         waitWhileTurning();
-//      }
-    } else if (turnDirection == TURN_RIGHT)
-    { // right direction
-      // if curr turn direction is right
-      // and turn node equals nodeR then
-      // it properly turns
-//      if (turnNode == nodeR)
-//      {
-        Serial.print("Turning right...");Serial.print(ETB);
+        //      }
+      } else if (turnDirection == TURN_RIGHT)
+      { // right direction
+        // if curr turn direction is right
+        // and turn node equals nodeR then
+        // it properly turns
+        //      if (turnNode == nodeR)
+        //      {
+        Serial.print("Turning right..."); Serial.print(ETB);
         currTurn++;
         motors.setSpeeds(150, -100);
         waitWhileTurning();
-//      }
-    } else if (turnDirection == MOVE_FORWARD)
-    {
-      Serial.print("Going straight...");Serial.print(ETB);
-      currTurn++;
-    } else if (turnDirection == ROOM_ON_LEFT)
-    {
-      Serial.print("Turning to left room...");Serial.print(ETB);
-      currTurn++;
-      motors.setSpeeds(-100, 150);
-      waitWhileTurning();
-      state = 1;
-    } else if (turnDirection == ROOM_ON_RIGHT)
-    {
-      Serial.print("Turning to right room...");Serial.print(ETB);
-      currTurn++;
-      motors.setSpeeds(150, -100);
-      waitWhileTurning();
-      state = 1;
-    } else
-    {
-      Serial.print("UNRECOGNIZED COMMAND: ");Serial.print(turnDirection);Serial.print(ETB);
+        //      }
+      } else if (turnDirection == MOVE_FORWARD)
+      {
+        Serial.print("Going straight..."); Serial.print(ETB);
+        currTurn++;
+      } else if (turnDirection == ROOM_ON_LEFT)
+      {
+        Serial.print("Turning to left room..."); Serial.print(ETB);
+        currTurn++;
+        motors.setSpeeds(-100, 150);
+        waitWhileTurning();
+        state = 1;
+      } else if (turnDirection == ROOM_ON_RIGHT)
+      {
+        Serial.print("Turning to right room..."); Serial.print(ETB);
+        currTurn++;
+        motors.setSpeeds(150, -100);
+        waitWhileTurning();
+        state = 1;
+      } else
+      {
+        Serial.print("UNRECOGNIZED COMMAND: "); Serial.print(turnDirection); Serial.print(ETB);
+      }
+    } else {
+      Serial.print("Finished turning instructions!"); Serial.print(ETB);
     }
-  } else {
-    Serial.print("Finished turning instructions!");Serial.print(ETB);
   }
-}
+
 
