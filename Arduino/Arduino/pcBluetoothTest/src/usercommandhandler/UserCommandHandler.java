@@ -110,7 +110,7 @@ public class UserCommandHandler extends Observable implements Observer {
                 }else if(words[1].equalsIgnoreCase("CRLF")){ //carriage return + line feed
                     myCom.STOP[0] = CR;
                     myCom.STOP[1] = LF;
-                    myCom.STOPBYTE = "\r\n";
+                    myCom.STOPBYTE = "\n";
                 }else{
                     sendMessageToUI("Error: Stop Code must be either CRLF or a single byte hex number entered in the format 0xNN.\n"
                         + "Current Stop Code is " + (myCom.STOP[0] == CR && myCom.STOP[1] == LF ? "CRLF" : myCom.STOP[0]));

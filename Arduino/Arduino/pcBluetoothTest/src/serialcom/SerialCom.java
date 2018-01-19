@@ -19,7 +19,7 @@ public final class SerialCom extends Observable implements Runnable{
     
 //    public byte[] STOP = {CR, LF};
     public byte[] STOP = {0x17, 0x17};
-    public String STOPBYTE = "\r";
+    public String STOPBYTE = "\n";
     
     boolean stopThisThread = false;
     
@@ -115,7 +115,8 @@ public final class SerialCom extends Observable implements Runnable{
                     if(msgFromServer != null){
                         data += msgFromServer;
                     }
-                    if(data.contains(STOPBYTE)){ // CHANGED THIS
+                    if(data.contains(STOPBYTE)){
+                        int i=0;
                         int index = data.indexOf(STOPBYTE);
 //                        System.out.println(data + " ; " + index + data.substring(0, index));                        
                         notify("Arduino" + data.substring(0, index));
