@@ -2,7 +2,7 @@
 Pathfinding Simulator.
 
 @author Lucas Wiebe-Dembowski
-@since 01/12/2018
+@since 01/16/2018
 */
 package Simulator;
 
@@ -19,6 +19,7 @@ public class Simulator{
 	final public static int ADAPTIVE = 2;
 	final public static String[] schedules = {"linear", "exponential", "adaptive"};
 
+	//I could also have called UP, RIGHT, DOWN, LEFT as NORTH, EAST, SOUTH, WEST respectively instead.
 	final private static int LEFT = -1;
 	final private static int RIGHT = 1;
 	final private static int UP = 2;
@@ -186,33 +187,206 @@ public class Simulator{
 		return result;
 	}
 
-	public static String encodedPath(ArrayList<ArrayList<Integer>> dir, int[] path){
+	public static String encodedPath(ArrayList<ArrayList<Integer>> dir, int[] path, ArrayList<Character> rooms, boolean verbose){
 		/*
+
+l = left intersection
+r = right intersection
+a = left room
+b = right room
+s = straight
+smallGraph3Map path 
+0, 13, 5, 13, 0, 3, 15, 2, 11, 8, 4, 12, 1, 6, 10, 14, 9, 14, 10, 6, 1, 16, 7
+s  l   b  r   r  a  r   s  r   a  a  r   l  a  a   r   a  l   s   s  l  r   a
+
+
+
+
+
+
 		Take a complete path through a map that includes duplicate nodes, such as
 		one returned by completePath(), and encode it in a way that the robot can understand.
-		
-		e.g. a, b, c might become 3 li_2 ri_3 ri_4
+		e.g. a, b, c might become 3 li_2 ri_3 ri_4.
+		dir is a direction matrix that stores values that are either LEFT, RIGHT, UP, DOWN or NO_DIRECTION.
+
+		Every node in path must be guaranteed by the calling function to be adjacent to each other in the graph. 
+		i.e. for all i, path[i-1] always has an edge to path[i].
+
+		Example for smallGraph3Map.csv: path = {0, 13, 5, 13, 0, 3, 15, 2, 11, 8, 4, 12, 1, 6, 10, 14, 9, 14, 10, 6, 1, 16, 7};
+
+
+	final private static int LEFT = -1;
+	final private static int RIGHT = 1;
+	final private static int UP = 2;
+	final private static int DOWN = -2;
+	final private static int NO_DIRECTION = 0;
+	final private static String[] directions = {"d", "l", "", "r", "u"};
 		*/
-		String result = Integer.toString(path.length);
+		if(verbose){
+			// Generic.printMatrix(dir);
+			// System.out.println("\npath is " + Arrays.toString(path));
+			System.out.println("Path length is " + Integer.toString(path.length));
+			System.out.println("Rooms length is " + rooms.size());
+		}
+		String result = Integer.toString(path.length); //first character is number of nodes
+		int leftNodes = 0;
+		int rightNodes = 0;
+
+		//get initial direction, relative to one fixed orientation of the map, 
+		//because if you're travelling left, turning toward a node that is "up" from the current one means turning right,
+		//but going to a node that is "left" of the current one means going straight, etc.
+		int	nodeDirection = dir.get(path[0]).get(path[1]); //relative to world frame
+		String str1 = String.format(" s%c_%d", rooms.get(0), 0); //Node #0. Robot goes straight from where you place it, index is 0 because why not.
+		//Not checking that rooms.get(0) is an intersection, but it should be.
+		// result += str1;
+
+		int currentDirection = nodeDirection; //relative to world frame
+		String dirChar = "";
+		int index = 0; //Equal to either leftNodes or rightNodes, depending on the cases
+		for(int i = 1; i < path.length; i++){
+			nodeDirection = dir.get(path[i-1]).get(path[i]); //the direction from node i-1 to i tells you what direction you should turn from ***** node i-1 ***** !!!!!!
+			//In the first iteration of this loop, nodeDirection is from 1 to 2, not from 0 to 1! The case from 0 to 1 was handled just before this for loop.
+
+			// System.out.println(nodeDirection);
+			switch(currentDirection){
+			//nodeDirection is the direction node i is from node i-1 relative to world frame.
+			//Each of the following cases must reason out the direction to turn relative to the robot's current frame.
+			case DOWN:
+				switch(nodeDirection){
+					case DOWN: //robot goes straight
+						dirChar = "s";
+						index = 0; //have to deal with this weird case later.
+					break;
+					case UP: //turn around?
+						dirChar = "t";
+						index = 0; //have to deal with this weird case later.
+					break;
+					case LEFT: //robot turns right
+						dirChar = "r";
+						rightNodes++;
+						index = rightNodes;
+					break;
+					case RIGHT: //robot turns left
+						dirChar = "l";
+						leftNodes++;
+						index = leftNodes;
+					break;
+					default: //should be impossible
+					break;
+				}
+				break;
+			case UP:
+				switch(nodeDirection){
+					case UP: //robot goes straight
+						dirChar = "s";
+						index = 0;
+					break;
+					case DOWN: //turn around?
+						dirChar = "t";
+						index = 0; //have to deal with this weird case later.
+					break;
+					case RIGHT: //robot turns right
+						dirChar = "r";
+						rightNodes++;
+						index = rightNodes;
+					break;
+					case LEFT: //robot turns left
+						dirChar = "l";
+						leftNodes++;
+						index = leftNodes;
+					break;
+					default: //should be impossible
+					break;
+				}
+				break;
+			case LEFT:
+				switch(nodeDirection){
+					case LEFT: //robot goes straight
+						dirChar = "s";
+						index = 0;
+					break;
+					case RIGHT: //turn around?
+						dirChar = "t";
+						index = 0; //have to deal with this weird case later.
+					break;
+					case UP: //robot turns right
+						dirChar = "r";
+						rightNodes++;
+						index = rightNodes;
+					break;
+					case DOWN: //robot turns left
+						dirChar = "l";
+						leftNodes++;
+						index = leftNodes;
+					break;
+					default: //should be impossible
+					break;
+				}
+				break;
+			case RIGHT:
+				switch(nodeDirection){
+					case RIGHT: //robot goes straight
+						dirChar = "s";
+						index = 0;
+					break;
+					case LEFT: //turn around?
+						dirChar = "t";
+						index = 0; //have to deal with this weird case later.
+					break;
+					case DOWN: //robot turns right
+						dirChar = "r";
+						rightNodes++;
+						index = rightNodes;
+					break;
+					case UP: //robot turns left
+						dirChar = "l";
+						leftNodes++;
+						index = leftNodes;
+					break;
+					default: //should be impossible
+					break;
+				}
+				break;
+			default: //should be impossible
+				break;
+			}
+			currentDirection = nodeDirection;
+			// System.out.println(currentDirection);
+			String str = String.format(" %s%c_%d", dirChar, rooms.get(i-1), index);
+			System.out.println(path[i-1]);
+			System.out.println(str);
+			result += str;
+		}
 		return result;
 	}
 
-	public static int[] completePath(ArrayList<ArrayList<Float>> A, int[] path){
+	public static int[] completePath(ArrayList<ArrayList<Float>> A, int[] path, ArrayList<Character> rooms){
 		/*
 		Calculate the complete, literal path through the building, including duplicate nodes,
 		 given a path that omits duplicate nodes, such as one returned by optimizeSA().
+
+		rooms is the rooms list of the compact path. When this function is called, path.length must be equal to rooms.size().
+		rooms is modified by this function to be the rooms list for the complete path, so it will be longer.
+		The length of the return value of this function will be equal to the final size of rooms.
 		*/
+
+		ArrayList<Character> oldRooms = new ArrayList<Character>();
+		oldRooms.addAll(rooms);
+		rooms.clear();
 
 		ArrayList<Integer> result = new ArrayList<Integer>();
 		if(path.length > 0){
 			result.add(path[0]);
+			rooms.add(oldRooms.get(path[0])); //add room entry for this node.
 			for(int i = 1; i < path.length; i++){
 				if((float)A.get(i-1).get(i) > 0.0f){
 					result.add(path[i]);
+					rooms.add(oldRooms.get(path[i])); //add room entry for this node.
 				}else{ //no edge from path[i-1] to path[i]
 					int[] subpath = shortestPath(A, path[i-1], path[i], false);
 					for(int k = 1; k < subpath.length; k++){ //ignore subpath[0] because it was already added on the previous iteration
 						result.add(subpath[k]);
+						rooms.add(oldRooms.get(subpath[k])); //add room entry for this node.
 					}
 				}
 			}
@@ -306,11 +480,15 @@ public class Simulator{
 		return Generic.arrayListToArray(pathTable.get(F)); //return type is int[]
 	}
 
-	public static void mapMatrixFromCSV(String file,  ArrayList<ArrayList<Float>> adj,  ArrayList<ArrayList<Integer>> dir, boolean verbose){
+	public static void mapMatrixFromCSV(String file,  ArrayList<ArrayList<Float>> adj,  ArrayList<ArrayList<Integer>> dir, ArrayList<Character> rooms, boolean verbose){
 		/*
+		adj, dir and rooms are modified by this function.
+
 		This function is not in CSVParsing because LEFT, RIGHT, UP, DOWN are constants that are specific to this application and should be defined in this file.
 		Read a 2-D matrix of any size from a csv file that represents a building map.
-		If a square matrix is required, the calling function must be responsible for ensuring that that is the case.
+		The calling function MUST be responsible for ensuring that the first n rows are the weighted adjacency matrix, 
+		and the last row is the list of 'i' and 'r' characters, which indicate whether the node corresponding to that column is an intersection or a room.
+		The last row will be copied into rooms.
 
 		IMPORTANT!!! This function requires the file to be formatted in a VERY SPECIFIC WAY:
 		Matrix organized like a weighted adjacency matrix, except each entry has either l, r, u or d, 
@@ -347,9 +525,16 @@ public class Simulator{
 			BufferedReader br = new BufferedReader(new FileReader(file));
 			String line = br.readLine();
 			String[] lineArray = line.split(DEFAULT_DELIMITER);
+			int n = lineArray.length; //This is the number of columns in the matrix. Calling function must ensure that the number of rows is n+1.
 
 			int i = 0;
 			while(line != null){
+				if(i == n){ //last row of the csv file
+					for(int k = 0; k < lineArray.length; k++){
+						rooms.add(lineArray[k].charAt(0));
+					}
+					break;
+				}
 				adj.add(new ArrayList<Float>());
 				dir.add(new ArrayList<Integer>());
 				for(int j = 0; j < lineArray.length; j++){
