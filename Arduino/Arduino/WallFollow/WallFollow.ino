@@ -7,6 +7,9 @@
 #include <String.h>
 //#include <Regexp.h>
 
+#define LED_PIN 13
+
+//SoftwareSerial mySerial(1, 0); // set bluetooth serial communication
 ZumoReflectanceSensorArray reflectanceSensors;
 ZumoMotors motors;
 Pushbutton button(ZUMO_BUTTON);// set zumo button
@@ -463,7 +466,6 @@ bool getMapDataResponse()
     Serial.print(ETB);
 //    Serial.println("Not found either consecutive A's or R's!");
 //    Serial.println();
-  }
   
   return result;
 }
@@ -486,7 +488,7 @@ String getMapData()
 void loadMap()
 {
   String mapData = "";
-
+  
   snprintf(printStr, PRINT_STR_BUFFER, "Starting loop to receive data...\n");
   Serial.print(printStr);
   Serial.print(ETB);
