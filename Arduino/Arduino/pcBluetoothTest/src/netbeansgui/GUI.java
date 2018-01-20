@@ -47,18 +47,18 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
             if(myText.contains("Arduino") && myText.substring(0, 7).equals("Arduino")){
                 //This message was sent from the arduino, not internally from this program.
                 String str = myText.substring(7, myText.length()); // -2 to ignore the \r\n at the end // CHANGED THIS (no need for -2)
-                String pathString = Integer.toString(numNodes) + " " + path;
-//                System.out.println("str is '" + str + "'");
-//                System.out.println("path is '" + path + "'");
-                if(waitingForResponse && str.trim().equals(pathString.trim())){
-                    waitingForResponse = false;
-                    update("Successfully sent path to Robot and received confirmation.");
-                    sendMsg("ACK AAAAAAAAAA");
-                }else if(waitingForResponse && !str.trim().equals(pathString.trim())){
-                    update("Sent path to Robot, but there was a transmission error. Re-sending.");
-                    sendMsg("ACK OOOOOOOOOO");
-                    sendMsg("path " + pathString); //the word "path" gets deleted before sending to robot.
-                }
+//                String pathString = Integer.toString(numNodes) + " " + path;
+////                System.out.println("str is '" + str + "'");
+////                System.out.println("path is '" + path + "'");
+//                if(waitingForResponse && str.trim().equals(pathString.trim())){
+//                    waitingForResponse = false;
+//                    update("Successfully sent path to Robot and received confirmation.");
+//                    sendMsg("ACK AAAAAAAAAA");
+//                }else if(waitingForResponse && !str.trim().equals(pathString.trim())){
+//                    update("Sent path to Robot, but there was a transmission error. Re-sending.");
+//                    sendMsg("ACK OOOOOOOOOO");
+//                    sendMsg("path " + pathString); //the word "path" gets deleted before sending to robot.
+//                }
                 updateArduinoMessages(str);
             }else{ //This message was sent internally from this program.
                 update(myText);
@@ -582,7 +582,7 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
         }
         if(numNodes > 0 || !path.isEmpty()) numNodes++;
         sendMsg("path " + Integer.toString(numNodes) + " " + path); //the word "path" gets deleted before sending to robot.
-        waitingForResponse = true;
+//        waitingForResponse = true;
     }//GEN-LAST:event_sendPathActionPerformed
 
     private void clearPathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearPathActionPerformed
