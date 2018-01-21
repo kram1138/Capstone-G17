@@ -2,7 +2,7 @@
 Generic program for testing various things related to our project.
 
 @author Lucas Wiebe-Dembowski
-@since 01/16/2018
+@since 01/21/2018
 */
 
 import java.util.ArrayList;
@@ -40,16 +40,17 @@ public class Test{
 		ArrayList<ArrayList<Float>> adj = new ArrayList<ArrayList<Float>>();
 		ArrayList<ArrayList<Integer>> dir = new ArrayList<ArrayList<Integer>>();
 		ArrayList<Character> rooms = new ArrayList<Character>();
-		Simulator.mapMatrixFromCSV(file, adj, dir, rooms, false); //fills adj, dir, rooms
+		ArrayList<Character> roomDirs = new ArrayList<Character>();
+		Simulator.mapMatrixFromCSV(file, adj, dir, rooms, roomDirs, false); //fills adj, dir, rooms, roomDirs with stuff
 
 		int[] path = {0, 13, 5, 3, 15, 2, 11, 8, 4, 12, 10, 14, 9, 6, 1, 16, 7}; //matrix4Updated
 		System.out.printf("Compact path starting at %d is %s\n", path[0], Arrays.toString(path));
 		System.out.println(rooms);
-		int[] completePath = Simulator.completePath(adj, path, rooms); //modifies rooms
+		int[] completePath = Simulator.completePath(adj, path, rooms, roomDirs); //modifies rooms, roomDirs
 		System.out.println(rooms);
 		System.out.printf("Complete path starting at %d is %s\n", completePath[0], Arrays.toString(completePath));
 
-		String encodedPath = Simulator.encodedPath(dir, completePath, rooms, true);
+		String encodedPath = Simulator.encodedPath(dir, completePath, rooms, roomDirs, true);
 		System.out.println("\n----------------------------------------------\n");
 		System.out.println(encodedPath);
 		System.out.println("\n----------------------------------------------\n");
@@ -127,7 +128,8 @@ public class Test{
 		ArrayList<ArrayList<Float>> adj = new ArrayList<ArrayList<Float>>();
 		ArrayList<ArrayList<Integer>> dir = new ArrayList<ArrayList<Integer>>();
 		ArrayList<Character> rooms = new ArrayList<Character>();
-		Simulator.mapMatrixFromCSV(file, adj, dir, rooms, true);
+		ArrayList<Character> roomDirs = new ArrayList<Character>();
+		Simulator.mapMatrixFromCSV(file, adj, dir, rooms, roomDirs, true);
 		System.out.println("adj is " + (MatrixGenerator.isSymmetric(adj, VERBOSE) ? "" : "NOT") + " symmetric.");
 		Generic.printAdjMatrix(adj);
 		System.out.println("dir is " + (MatrixGenerator.isNegativeSymmetric(dir, VERBOSE) ? "" : "NOT") + " negative symmetric.");
@@ -143,7 +145,8 @@ public class Test{
 		ArrayList<ArrayList<Float>> adj = new ArrayList<ArrayList<Float>>();
 		ArrayList<ArrayList<Integer>> dir = new ArrayList<ArrayList<Integer>>();
 		ArrayList<Character> rooms = new ArrayList<Character>();
-		Simulator.mapMatrixFromCSV(file, adj, dir, rooms, false);
+		ArrayList<Character> roomDirs = new ArrayList<Character>();
+		Simulator.mapMatrixFromCSV(file, adj, dir, rooms, roomDirs, false);
 		Generic.printAdjMatrix(A);
 		Generic.printAdjMatrix(adj);
 		System.out.println("A is " + (Generic.matricesDeepEquals(A, adj) ? "" : "NOT") + " equal to adj.");
@@ -151,7 +154,7 @@ public class Test{
 		// int[] path = {0, 5, 3, 2, 8, 4, 10, 9, 6, 1, 7}; //matrix4
 		int[] path = {0, 13, 5, 3, 15, 2, 11, 8, 4, 12, 10, 14, 9, 6, 1, 16, 7}; //matrix4Updated
 		System.out.printf("Compact path starting at %d is %s\n", path[0], Arrays.toString(path));
-		int[] completePath = Simulator.completePath(adj, path, rooms);
+		int[] completePath = Simulator.completePath(adj, path, rooms, roomDirs); //modifies rooms, roomDirs
 		System.out.printf("Complete path starting at %d is %s\n", completePath[0], Arrays.toString(completePath));
 	}
 

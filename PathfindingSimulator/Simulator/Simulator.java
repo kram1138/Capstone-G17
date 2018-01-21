@@ -2,7 +2,7 @@
 Pathfinding Simulator.
 
 @author Lucas Wiebe-Dembowski
-@since 01/16/2018
+@since 01/21/2018
 */
 package Simulator;
 
@@ -25,6 +25,12 @@ public class Simulator{
 	final private static int UP = 2;
 	final private static int DOWN = -2;
 	final private static int NO_DIRECTION = 0;
+
+	final private static char LEFTc = 'l';
+	final private static char RIGHTc = 'r';
+	final private static char LEFT_ROOMc = 'a';
+	final private static char RIGHT_ROOMc = 'd';
+	final private static char STRAIGHTc = 'f';
 
 	public static int[] optimizeSA(ArrayList<ArrayList<Float>> distMatrix, 
 									int start, 
@@ -187,206 +193,245 @@ public class Simulator{
 		return result;
 	}
 
-	public static String encodedPath(ArrayList<ArrayList<Integer>> dir, int[] path, ArrayList<Character> rooms, boolean verbose){
+	public static String encodedPath(ArrayList<ArrayList<Integer>> dir, 
+									int[] path, 
+									ArrayList<Character> rooms, 
+									ArrayList<Character> roomDirs, 
+									boolean verbose)
+	{
 		/*
-
-l = left intersection
-r = right intersection
-a = left room
-b = right room
-s = straight
-smallGraph3Map path 
-0, 13, 5, 13, 0, 3, 15, 2, 11, 8, 4, 12, 1, 6, 10, 14, 9, 14, 10, 6, 1, 16, 7
-s  l   b  r   r  a  r   s  r   a  a  r   l  a  a   r   a  l   s   s  l  r   a
-
-
-
-
-
+		smallGraph3Map example: if path is the following lsit of numbers, then the string below it will be returned from this function, but with single spaces. 
+		0, 13, 5,  13, 0, 3,  15, 2, 11, 8,  4,  12, 1, 6,  10,  14, 9,  14, 10, 6, 1, 16, 7   0
+	33	f  l   d l r  r  a l  r   f  r   a l a l r   l  a l a l  r   d l l   f   f  l  r   a l
 
 		Take a complete path through a map that includes duplicate nodes, such as
 		one returned by completePath(), and encode it in a way that the robot can understand.
-		e.g. a, b, c might become 3 li_2 ri_3 ri_4.
+
 		dir is a direction matrix that stores values that are either LEFT, RIGHT, UP, DOWN or NO_DIRECTION.
+		rooms.get(i) is 'i' if node i is an intersection and 'r' if node i is a room.
+		roomDirs.get(i) is l, r, u or d (wrt WORLD) if node i is a room, or x if not.
+		d in roomDirs means down, but in the encoded path means right room
 
-		Every node in path must be guaranteed by the calling function to be adjacent to each other in the graph. 
+		roomDirs.size(), rooms.size() and path.length must all be equal!
+
+		Every node in path must be guaranteed by the calling function to be adjacent to each other in the graph, using the completePath() function. 
 		i.e. for all i, path[i-1] always has an edge to path[i].
-
-		Example for smallGraph3Map.csv: path = {0, 13, 5, 13, 0, 3, 15, 2, 11, 8, 4, 12, 1, 6, 10, 14, 9, 14, 10, 6, 1, 16, 7};
-
-
-	final private static int LEFT = -1;
-	final private static int RIGHT = 1;
-	final private static int UP = 2;
-	final private static int DOWN = -2;
-	final private static int NO_DIRECTION = 0;
-	final private static String[] directions = {"d", "l", "", "r", "u"};
 		*/
 		if(verbose){
 			// Generic.printMatrix(dir);
 			// System.out.println("\npath is " + Arrays.toString(path));
 			System.out.println("Path length is " + Integer.toString(path.length));
-			System.out.println("Rooms length is " + rooms.size());
+			System.out.println("Rooms is " + rooms);
+			System.out.println("RoomDirs is " + roomDirs);
 		}
-		String result = Integer.toString(path.length); //first character is number of nodes
-		int leftNodes = 0;
-		int rightNodes = 0;
+		String result = ""; //return value
+		ArrayList<Integer> cleared = new ArrayList<Integer>(); //stores node numbers that have been cleared already
+		cleared.add(path[0]);
 
-		//get initial direction, relative to one fixed orientation of the map, 
+		//get initial direction, relative to one fixed orientation of the map, referred to as world space or the world frame, 
 		//because if you're travelling left, turning toward a node that is "up" from the current one means turning right,
 		//but going to a node that is "left" of the current one means going straight, etc.
 		int	nodeDirection = dir.get(path[0]).get(path[1]); //relative to world frame
-		String str1 = String.format(" s%c_%d", rooms.get(0), 0); //Node #0. Robot goes straight from where you place it, index is 0 because why not.
-		//Not checking that rooms.get(0) is an intersection, but it should be.
-		// result += str1;
 
-		int currentDirection = nodeDirection; //relative to world frame
-		String dirChar = "";
-		int index = 0; //Equal to either leftNodes or rightNodes, depending on the cases
+		int currentDirection = nodeDirection; //relative to WORLD FRAME
+		String dirChar = ""; //relative to ROBOT FRAME. This tells the robot how to turn.
 		for(int i = 1; i < path.length; i++){
-			nodeDirection = dir.get(path[i-1]).get(path[i]); //the direction from node i-1 to i tells you what direction you should turn from ***** node i-1 ***** !!!!!!
 			//In the first iteration of this loop, nodeDirection is from 1 to 2, not from 0 to 1! The case from 0 to 1 was handled just before this for loop.
+			nodeDirection = dir.get(path[i-1]).get(path[i]); //the direction from node i-1 to i tells you what direction you should turn from ***** node i-1 ***** !!!!!! WRT WORLD!
+			
+			if(rooms.get(i-1) == 'r' && !Generic.intListContains(cleared, path[i-1])){ //room.
+				//decide which way to turn after cleaning the room and returning to the hallway.
+				char roomDir = roomDirs.get(i-1); //l, r, u or d, wrt world
+				dirChar = String.valueOf(convertDirection(currentDirection, charDirToIntDir(roomDir), rooms.get(i-1))); //rooms.get(i-1) is always 'r' here
+				// d in roomDirs means down, but in the encoded path means right room
+				String str = String.format("%s ", dirChar);
+				// System.out.println(path[i-1]);
+				// System.out.printf("going %d, conversion of %d is %s\n", currentDirection, charDirToIntDir(roomDir), str);
+				result += str;
 
-			// System.out.println(nodeDirection);
-			switch(currentDirection){
-			//nodeDirection is the direction node i is from node i-1 relative to world frame.
-			//Each of the following cases must reason out the direction to turn relative to the robot's current frame.
-			case DOWN:
-				switch(nodeDirection){
-					case DOWN: //robot goes straight
-						dirChar = "s";
-						index = 0; //have to deal with this weird case later.
-					break;
-					case UP: //turn around?
-						dirChar = "t";
-						index = 0; //have to deal with this weird case later.
-					break;
-					case LEFT: //robot turns right
-						dirChar = "r";
-						rightNodes++;
-						index = rightNodes;
-					break;
-					case RIGHT: //robot turns left
-						dirChar = "l";
-						leftNodes++;
-						index = leftNodes;
-					break;
-					default: //should be impossible
-					break;
+				//then robot leaves room, it will be travelling in the opposite direction it went to enter it.
+				if(roomDir == 'l'){ //DON'T use charDirToIntDir() here since this is BACKWARDS
+					currentDirection = RIGHT;
+				}else if(roomDir == 'r'){
+					currentDirection = LEFT;
+				}else if(roomDir == 'u'){
+					currentDirection = DOWN;
+				}else if(roomDir == 'd'){
+					currentDirection = UP;
 				}
-				break;
-			case UP:
-				switch(nodeDirection){
-					case UP: //robot goes straight
-						dirChar = "s";
-						index = 0;
-					break;
-					case DOWN: //turn around?
-						dirChar = "t";
-						index = 0; //have to deal with this weird case later.
-					break;
-					case RIGHT: //robot turns right
-						dirChar = "r";
-						rightNodes++;
-						index = rightNodes;
-					break;
-					case LEFT: //robot turns left
-						dirChar = "l";
-						leftNodes++;
-						index = leftNodes;
-					break;
-					default: //should be impossible
-					break;
-				}
-				break;
-			case LEFT:
-				switch(nodeDirection){
-					case LEFT: //robot goes straight
-						dirChar = "s";
-						index = 0;
-					break;
-					case RIGHT: //turn around?
-						dirChar = "t";
-						index = 0; //have to deal with this weird case later.
-					break;
-					case UP: //robot turns right
-						dirChar = "r";
-						rightNodes++;
-						index = rightNodes;
-					break;
-					case DOWN: //robot turns left
-						dirChar = "l";
-						leftNodes++;
-						index = leftNodes;
-					break;
-					default: //should be impossible
-					break;
-				}
-				break;
-			case RIGHT:
-				switch(nodeDirection){
-					case RIGHT: //robot goes straight
-						dirChar = "s";
-						index = 0;
-					break;
-					case LEFT: //turn around?
-						dirChar = "t";
-						index = 0; //have to deal with this weird case later.
-					break;
-					case DOWN: //robot turns right
-						dirChar = "r";
-						rightNodes++;
-						index = rightNodes;
-					break;
-					case UP: //robot turns left
-						dirChar = "l";
-						leftNodes++;
-						index = leftNodes;
-					break;
-					default: //should be impossible
-					break;
-				}
-				break;
-			default: //should be impossible
-				break;
+
+				dirChar = String.valueOf(convertDirection(currentDirection, nodeDirection, 'i')); //'i' because you're leaving a room, the "intersection" indicates that the robot should not clean the room.
+			}else{ //intersection
+				dirChar = String.valueOf(convertDirection(currentDirection, nodeDirection, rooms.get(i-1)));
 			}
+
 			currentDirection = nodeDirection;
-			// System.out.println(currentDirection);
-			String str = String.format(" %s%c_%d", dirChar, rooms.get(i-1), index);
-			System.out.println(path[i-1]);
-			System.out.println(str);
+			String str = String.format("%s ", dirChar);
+			// System.out.println(path[i-1]);
+			// System.out.println(str);
 			result += str;
+			if(!Generic.intListContains(cleared, path[i-1])){
+				cleared.add(path[i-1]);
+			}
+		} //end for
+
+		//last char is to go back to the starting point.
+		if(rooms.get(path.length-1) == 'r'){ //room. NEED TO ADD CHECK IF WE ALREADY CLEANED THIS SPECIFIC ROOM.
+			char roomDir = roomDirs.get(path.length-1); //l, r, u or d, wrt world
+			dirChar = String.valueOf(convertDirection(currentDirection, charDirToIntDir(roomDir), rooms.get(path.length-1))); //rooms.get(path.length-1) is always 'r' here
+			// d in roomDirs means down, but in the encoded path means right room
+			String str = String.format("%s ", dirChar);
+			// System.out.println(path[path.length-1]);
+			// System.out.printf("going %d, conversion of %d is %s\n", currentDirection, charDirToIntDir(roomDir), str);
+			result += str;
+
+			//then robot leaves room, it will be travelling in the opposite direction it went to enter it.
+			if(roomDir == 'l'){ //DON'T use charDirToIntDir() here since this is BACKWARDS
+				currentDirection = RIGHT;
+			}else if(roomDir == 'r'){
+				currentDirection = LEFT;
+			}else if(roomDir == 'u'){
+				currentDirection = DOWN;
+			}else if(roomDir == 'd'){
+				currentDirection = UP;
+			}
+			dirChar = String.valueOf(convertDirection(currentDirection, nodeDirection, 'i')); //'i' because you're leaving a room, the "intersection" indicates that the robot should not clean the room.
 		}
+		dirChar = String.valueOf(convertDirection(currentDirection, dir.get(path[path.length-1]).get(path[0]), 'i'));
+		//'i' because either this was an intersection, or you're leaving a room, the "intersection" indicates that the robot should not clean the room.
+		String str = String.format("%s", dirChar);
+		// System.out.println(path[path.length-1]);
+		// System.out.println(str);
+		result += str;
+		result = Integer.toString(result.split("\\s+").length) + " " + result;
 		return result;
 	}
 
-	public static int[] completePath(ArrayList<ArrayList<Float>> A, int[] path, ArrayList<Character> rooms){
+	private static char convertDirection(int currentDirection, int nodeDirection, char room){
+		/*
+		Convert a direction from world frame to robot frame. This function is used internally only by encodedPath().
+		currentDirection is the direction the robot is travelling wrt the WORLD.
+		nodeDirection is the direction one node is from another wrt the WORLD.
+		room is either 'i' for intersections, 'r' for rooms.
+		return value is one of the following chars, depending on the relation beterrn currentDirection and nodeDirection:
+		 STRAIGHTc or (RIGHTc or LEFTc if room=='i') or (LEFT_ROOMc or RIGHT_ROOMc if room=='r')
+		*/
+		char dirChar = ' '; //return value
+		switch(currentDirection){
+		//nodeDirection is the direction node i is from node i-1 relative to WORLD frame.
+		//Each of the following cases must reason out the direction to turn relative to the ROBOT's current frame.
+		case DOWN:
+			switch(nodeDirection){
+				case DOWN: //robot goes straight
+					dirChar = STRAIGHTc;
+					break;
+				case UP: //turn around?
+					dirChar = 't';
+					break;
+				case LEFT: //robot turns right
+					dirChar = room == 'i' ? RIGHTc : RIGHT_ROOMc;
+					break;
+				case RIGHT: //robot turns left
+					dirChar = room == 'i' ? LEFTc : LEFT_ROOMc;
+					break;
+				default: //should be impossible
+					break;
+			}
+			break;
+		case UP:
+			switch(nodeDirection){
+				case UP: //robot goes straight
+					dirChar = STRAIGHTc;
+					break;
+				case DOWN: //turn around?
+					dirChar = 't';
+					break;
+				case RIGHT: //robot turns right
+					dirChar = room == 'i' ? RIGHTc : RIGHT_ROOMc;
+					break;
+				case LEFT: //robot turns left
+					dirChar = room == 'i' ? LEFTc : LEFT_ROOMc;
+					break;
+				default: //should be impossible
+					break;
+			}
+			break;
+		case LEFT:
+			switch(nodeDirection){
+				case LEFT: //robot goes straight
+					dirChar = STRAIGHTc;
+					break;
+				case RIGHT: //turn around?
+					dirChar = 't';
+					break;
+				case UP: //robot turns right
+					dirChar = room == 'i' ? RIGHTc : RIGHT_ROOMc;
+					break;
+				case DOWN: //robot turns left
+					dirChar = room == 'i' ? LEFTc : LEFT_ROOMc;
+					break;
+				default: //should be impossible
+					break;
+			}
+			break;
+		case RIGHT:
+			switch(nodeDirection){
+				case RIGHT: //robot goes straight
+					dirChar = STRAIGHTc;
+					break;
+				case LEFT: //turn around?
+					dirChar = 't';
+					break;
+				case DOWN: //robot turns right
+					dirChar = room == 'i' ? RIGHTc : RIGHT_ROOMc;
+					break;
+				case UP: //robot turns left
+					dirChar = room == 'i' ? LEFTc : LEFT_ROOMc;
+					break;
+				default: //should be impossible
+					break;
+			}
+			break;
+		default: //should be impossible
+			break;
+		}
+
+		return dirChar;
+	}
+
+	public static int[] completePath(ArrayList<ArrayList<Float>> A, int[] path, ArrayList<Character> rooms, ArrayList<Character> roomDirs){
 		/*
 		Calculate the complete, literal path through the building, including duplicate nodes,
 		 given a path that omits duplicate nodes, such as one returned by optimizeSA().
 
-		rooms is the rooms list of the compact path. When this function is called, path.length must be equal to rooms.size().
-		rooms is modified by this function to be the rooms list for the complete path, so it will be longer.
-		The length of the return value of this function will be equal to the final size of rooms.
+		rooms is the rooms list of the compact path. When this function is called, path.length must be equal to rooms.size() and roomDirs.size().
+		rooms and roomDirs are modified by this function to be the rooms and roomsDirs lists for the complete path, so they will be longer.
+		The length of the return value of this function will be equal to the final size of rooms and roomsDirs.
 		*/
 
 		ArrayList<Character> oldRooms = new ArrayList<Character>();
+		ArrayList<Character> oldRoomDirs = new ArrayList<Character>();
 		oldRooms.addAll(rooms);
+		oldRoomDirs.addAll(roomDirs);
 		rooms.clear();
+		roomDirs.clear();
 
 		ArrayList<Integer> result = new ArrayList<Integer>();
 		if(path.length > 0){
 			result.add(path[0]);
 			rooms.add(oldRooms.get(path[0])); //add room entry for this node.
+			roomDirs.add(oldRoomDirs.get(path[0])); //add roomDir entry for this node.
 			for(int i = 1; i < path.length; i++){
 				if((float)A.get(i-1).get(i) > 0.0f){
 					result.add(path[i]);
 					rooms.add(oldRooms.get(path[i])); //add room entry for this node.
+					roomDirs.add(oldRoomDirs.get(path[i])); //add roomDir entry for this node.
 				}else{ //no edge from path[i-1] to path[i]
 					int[] subpath = shortestPath(A, path[i-1], path[i], false);
 					for(int k = 1; k < subpath.length; k++){ //ignore subpath[0] because it was already added on the previous iteration
 						result.add(subpath[k]);
 						rooms.add(oldRooms.get(subpath[k])); //add room entry for this node.
+						roomDirs.add(oldRoomDirs.get(subpath[k])); //add roomDir entry for this node.
 					}
 				}
 			}
@@ -480,15 +525,24 @@ s  l   b  r   r  a  r   s  r   a  a  r   l  a  a   r   a  l   s   s  l  r   a
 		return Generic.arrayListToArray(pathTable.get(F)); //return type is int[]
 	}
 
-	public static void mapMatrixFromCSV(String file,  ArrayList<ArrayList<Float>> adj,  ArrayList<ArrayList<Integer>> dir, ArrayList<Character> rooms, boolean verbose){
+	public static void mapMatrixFromCSV(String file, 
+										ArrayList<ArrayList<Float>> adj,  
+										ArrayList<ArrayList<Integer>> dir, 
+										ArrayList<Character> rooms, 
+										ArrayList<Character> roomDirs, 
+										boolean verbose)
+	{
 		/*
-		adj, dir and rooms are modified by this function.
+		adj, dir, rooms and roomDirs are modified by this function.
 
 		This function is not in CSVParsing because LEFT, RIGHT, UP, DOWN are constants that are specific to this application and should be defined in this file.
-		Read a 2-D matrix of any size from a csv file that represents a building map.
+		This reads a 2-D matrix of any size (See important note below) from a csv file that represents a building map.
 		The calling function MUST be responsible for ensuring that the first n rows are the weighted adjacency matrix, 
-		and the last row is the list of 'i' and 'r' characters, which indicate whether the node corresponding to that column is an intersection or a room.
-		The last row will be copied into rooms.
+		and the second last row is the list of 'i' and 'r' characters, which indicate whether the node corresponding to that column is an intersection or a room,
+		and the last row is the list of room directions, with either l, r, u or d indicating the room's direction wrt the hallways wrt the world, and x means no room.
+		
+		The second last row will be copied into rooms.
+		The last row will be copied into roomDirs.
 
 		IMPORTANT!!! This function requires the file to be formatted in a VERY SPECIFIC WAY:
 		Matrix organized like a weighted adjacency matrix, except each entry has either l, r, u or d, 
@@ -525,40 +579,41 @@ s  l   b  r   r  a  r   s  r   a  a  r   l  a  a   r   a  l   s   s  l  r   a
 			BufferedReader br = new BufferedReader(new FileReader(file));
 			String line = br.readLine();
 			String[] lineArray = line.split(DEFAULT_DELIMITER);
-			int n = lineArray.length; //This is the number of columns in the matrix. Calling function must ensure that the number of rows is n+1.
+			int n = lineArray.length; //This is the number of columns in the matrix. Calling function must ensure that the number of rows is n+2.
 
 			int i = 0;
 			while(line != null){
-				if(i == n){ //last row of the csv file
+				if(i == n){ //second-last row of the csv file
 					for(int k = 0; k < lineArray.length; k++){
 						rooms.add(lineArray[k].charAt(0));
 					}
-					break;
-				}
-				adj.add(new ArrayList<Float>());
-				dir.add(new ArrayList<Integer>());
-				for(int j = 0; j < lineArray.length; j++){
-					String entry = lineArray[j];
-					char last = entry.charAt(entry.length() - 1);
-					if(last == 'l'){
-						String x = entry.substring(0, entry.length() - 1); //remove last character
-						adj.get(i).add(Float.parseFloat(x));
-						dir.get(i).add(LEFT);
-					}else if(last == 'r'){
-						String x = entry.substring(0, entry.length() - 1); //remove last character
-						adj.get(i).add(Float.parseFloat(x));
-						dir.get(i).add(RIGHT);
-					}else if(last == 'u'){
-						String x = entry.substring(0, entry.length() - 1); //remove last character
-						adj.get(i).add(Float.parseFloat(x));
-						dir.get(i).add(UP);
-					}else if(last == 'd'){
-						String x = entry.substring(0, entry.length() - 1); //remove last character
-						adj.get(i).add(Float.parseFloat(x));
-						dir.get(i).add(DOWN);
-					}else{ //no direction
-						adj.get(i).add(Float.parseFloat(entry));
-						dir.get(i).add(NO_DIRECTION);
+				}else if(i == n+1){ //last row of the csv file
+					for(int k = 0; k < lineArray.length; k++){
+						roomDirs.add(lineArray[k].charAt(0));
+					}
+					break; //avoid reading garbage after row n+1 that shouldn't be there
+				}else{
+					adj.add(new ArrayList<Float>());
+					dir.add(new ArrayList<Integer>());
+					for(int j = 0; j < lineArray.length; j++){
+						String entry = lineArray[j];
+						char direction = entry.charAt(entry.length() - 1);
+						if(direction == 'l'){
+							String x = entry.substring(0, entry.length() - 1); //remove last character
+							adj.get(i).add(Float.parseFloat(x));
+						}else if(direction == 'r'){
+							String x = entry.substring(0, entry.length() - 1); //remove last character
+							adj.get(i).add(Float.parseFloat(x));
+						}else if(direction == 'u'){
+							String x = entry.substring(0, entry.length() - 1); //remove last character
+							adj.get(i).add(Float.parseFloat(x));
+						}else if(direction == 'd'){
+							String x = entry.substring(0, entry.length() - 1); //remove last character
+							adj.get(i).add(Float.parseFloat(x));
+						}else{ //no direction
+							adj.get(i).add(Float.parseFloat(entry));
+						}
+						dir.get(i).add(charDirToIntDir(direction));
 					}
 				}
 				line = br.readLine();
@@ -575,5 +630,21 @@ s  l   b  r   r  a  r   s  r   a  a  r   l  a  a   r   a  l   s   s  l  r   a
 		}catch(IOException e){
 			System.out.println(e);
 		}
+	}
+
+	private static int charDirToIntDir(char dir){
+		int ret;
+		if(dir == 'l'){
+			ret = (LEFT);
+		}else if(dir == 'r'){
+			ret = (RIGHT);
+		}else if(dir == 'u'){
+			ret = (UP);
+		}else if(dir == 'd'){
+			ret = (DOWN);
+		}else{ //no direction
+			ret = (NO_DIRECTION);
+		}
+		return ret;
 	}
 }

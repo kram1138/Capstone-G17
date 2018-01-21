@@ -2,7 +2,7 @@
 Generic code not related to anythign specific in the project, and gets used in many places.
 
 @author Lucas Wiebe-Dembowski
-@since 10/31/2017
+@since 01/21/2018
 */
 package GenericCode;
 
@@ -23,6 +23,14 @@ public class Generic{
 			B.get(i).addAll(A.get(i));
 		}
 		return B;
+	}
+
+	public static boolean intListContains(ArrayList<Integer> A, int x){
+		boolean found = false;
+		for(int i : A){
+			if(i==x){ found = true; }
+		}
+		return found;
 	}
 
 	public static boolean matricesDeepEquals(ArrayList<ArrayList<Float>> A, ArrayList<ArrayList<Float>> B){
