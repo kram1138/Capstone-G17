@@ -1,13 +1,12 @@
 /**
-Generic code not related to anythign specific in the project, and gets used in many places.
+Generic code not related to anything specific in the project, and gets used in many places.
 
 @author Lucas Wiebe-Dembowski
-@since 10/31/2017
+@since 01/21/2018
 */
 package GenericCode;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Generic{
 
@@ -23,6 +22,47 @@ public class Generic{
 			B.get(i).addAll(A.get(i));
 		}
 		return B;
+	}
+
+	public static boolean intListContains(ArrayList<Integer> A, int x){
+		boolean found = false;
+		for(int i : A){
+			if(i==x){ found = true; }
+		}
+		return found;
+	}
+
+	public static boolean matricesDeepEquals(ArrayList<ArrayList<Float>> A, ArrayList<ArrayList<Float>> B){
+		/*
+		Return true if the value of each element Aij is equal to Bij. A and B MUST BE THE SAME SIZE.
+		*/
+		boolean success = true;
+		if(A.size() != B.size()){
+			success = false;
+		}else{
+			for(int i = 0; success && i < A.size(); i++){
+				if(A.get(i).size() != B.get(i).size()){
+					success = false;
+				}else{
+					for(int j = 0; success && j < A.size(); j++){
+						float a = A.get(i).get(j);
+						float b = B.get(i).get(j);
+						if(a != b){
+							success = false;
+						}
+					}
+				}
+			}
+		}
+		return success;
+	}
+
+	public static int[] arrayListToArray(ArrayList<Integer> L){
+		int[] A = new int[L.size()];
+		for(int i = 0; i < A.length; i++){
+			A[i] = (int)L.get(i);
+		}
+		return A;
 	}
 
 	public static void printAdjMatrix(ArrayList<ArrayList<Float>> A){

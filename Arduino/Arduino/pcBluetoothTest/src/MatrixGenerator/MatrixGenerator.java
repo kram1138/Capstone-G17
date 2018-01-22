@@ -3,7 +3,7 @@ Includes functions for generating random adjacency matrices, stored as 2D Float 
 representing the graph of a building with n rooms.
 
 @author Lucas Wiebe-Dembowski
-@since 10/31/2017
+@since 01/13/2018
 */
 package MatrixGenerator;
 
@@ -304,6 +304,38 @@ public class MatrixGenerator{
 		return result;
 	}
 
+	public static boolean isNegativeSymmetric(ArrayList<ArrayList<Integer>> A, boolean verbose){
+		//A matrix A_nxn is negative symmetric iff it is square and if for all i,j in [0,n) : Aij = -Aji 
+		//(I completely made this up. Only makes sense for what I'm doing with direction matrices.)
+		//This method can't be generic because the comparison done inside the for loop depends on the data type.
+
+		//This function is identical to isSymmetric() except it checks if(Aij != -Aji), not if(Aij != Aji). Also, int instead of float.
+
+		boolean result = true;
+		if(isSquare(A, true)){
+			int n = A.size();
+			int i, j;
+			for(i = 0; result && i < n; i++){ //Loop over upper triangle of the matrix
+				for(j = i; result && j < n; j++){
+					//Need to unbox primitive so the comparison operator compares the value, NOT the instance!
+					int Aij = A.get(i).get(j);
+					int Aji = A.get(j).get(i);
+					if(verbose && i == j && Aij != 0){ System.out.printf("row %d diagonal element is %f!\n", i, Aij); }
+					if(Aij != -Aji){
+						if(verbose){
+							System.out.printf("A(%d,%d) = %.20f but A(%d,%d) = %.20f\n", i, j, Aij, j, i, Aji);
+						}
+						result = false; //Aij != Aji <=> not symmetric
+					}
+				}
+			}
+		}else{
+			if(verbose){ System.out.println("B is NOT square."); }
+			result = false; //not square <=> not symmetric
+		}
+		return result;
+	}
+
 	public static <T> boolean isSquare(ArrayList<ArrayList<T>> A, boolean verbose){
 		//A matrix is square if the number of rows is equal to the number of columns.
 		//Can't have a matrix with variable length rows.
@@ -326,4 +358,5 @@ public class MatrixGenerator{
 		}
 		return result;
 	}
+
 }

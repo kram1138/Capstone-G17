@@ -1,5 +1,5 @@
 /**
-Generic code not related to anythign specific in the project, and gets used in many places.
+Generic code not related to anything specific in the project, and gets used in many places.
 
 @author Lucas Wiebe-Dembowski
 @since 01/21/2018

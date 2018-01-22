@@ -27,7 +27,12 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
     private final GUIObservable myObservable = new GUIObservable();
     private String path;
     private String mapFileName;
-    private ArrayList<ArrayList<Float>> A;
+    private ArrayList<ArrayList<Float>> A = new ArrayList<ArrayList<Float>>(); //adjacency matrix
+    private ArrayList<ArrayList<Integer>> dir = new ArrayList<ArrayList<Integer>>(); //node direction matrix
+    private ArrayList<Character> rooms = new ArrayList<Character>(); //rooms/intersections list
+    private ArrayList<Character> roomDirs = new ArrayList<Character>(); //room directions list
+    
+    private String encodedPath;
     
     private int numNodes; //number of nodes in path
     private boolean waitingForResponse; //true if arduino is supposed to send message back for confirmation, false otherwise.
@@ -165,7 +170,7 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
         });
 
         stopCode.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
-        stopCode.setText("0x17");
+        stopCode.setText("crlf");
         stopCode.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 stopCodeActionPerformed(evt);
@@ -309,7 +314,7 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
         jScrollPane3.setViewportView(Messages);
 
         fileNameBox.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
-        fileNameBox.setText("matrix4.csv");
+        fileNameBox.setText("smallGraph3Map.csv");
         fileNameBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 fileNameBoxActionPerformed(evt);
@@ -574,14 +579,16 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
     }//GEN-LAST:event_leftIntersectionActionPerformed
 
     private void sendPathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendPathActionPerformed
-        numNodes = 0; //Count how many spaces there are. Number of nodes is one more than that.
-        for(int i = 0; i < path.length() - 1; i++){ // -1 to avoid counting the space at the end.
-            if(path.charAt(i) == ' '){
-                numNodes++;
-            }
-        }
-        if(numNodes > 0 || !path.isEmpty()) numNodes++;
-        sendMsg("path " + Integer.toString(numNodes) + " " + path); //the word "path" gets deleted before sending to robot.
+//        numNodes = 0; //Count how many spaces there are. Number of nodes is one more than that.
+//        for(int i = 0; i < path.length() - 1; i++){ // -1 to avoid counting the space at the end.
+//            if(path.charAt(i) == ' '){
+//                numNodes++;
+//            }
+//        }
+//        if(numNodes > 0 || !path.isEmpty()) numNodes++;
+//        sendMsg("path " + Integer.toString(numNodes) + " " + path); //the word "path" gets deleted before sending to robot.
+
+          sendMsg("path " + encodedPath);
 //        waitingForResponse = true;
     }//GEN-LAST:event_sendPathActionPerformed
 
@@ -617,7 +624,8 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
     private void setFileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setFileButtonActionPerformed
         mapFileName = fileNameBox.getText();
         update(String.format("Loading building map from file: %s ...", mapFileName));
-        A = CSVParsing.matrixListFromCSV(mapFileName);
+//        A = CSVParsing.matrixListFromCSV(mapFileName);
+        Pathfinding.mapMatrixFromCSV(mapFileName, A, dir, rooms, roomDirs, false); //fills A, dir, rooms, roomDirs with stuff
         if(A.size() == 0){
             update("Map unable to load. Make sure the file exists in the project root directory.");
         }else{
@@ -647,29 +655,28 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
             float cost;
             ArrayList<ArrayList<Float>> costs_and_times = new ArrayList<ArrayList<Float>>();
             long startTime, stop, runtime = 0;
-            int i = 0;
-            // for(int j = 0; j < 100; j++){
-                    startTime = System.nanoTime();
-                    int numIterations = 6;
-                    soln = Pathfinding.optimizeSA(D, start, nEL, nCL, initialTemperature, finalTemperature, coolingSchedule, numIterations, VERBOSE);
-                    update("solution is " + Arrays.toString(soln));
-                    stop = System.nanoTime();
-                    runtime = stop - startTime; //time in nanoseconds
-                    cost = Pathfinding.cost(D, start, soln);
-//                    costs_and_times.add(new ArrayList<Float>());
-//                    costs_and_times.get(i).add((float)runtime / 1000000000.0f);
-//                    costs_and_times.get(i).add(cost);
-//                    i++;
-                    update(String.format("nEL = %d. nCL = %d. \nSOLUTION COST = %.1f. \nRuntime = %fs.\n", nEL, nCL, cost, (double)runtime / 1000000000.0));
-            // }
-            String outputFile;
-//            outputFile = "costsList.csv";
-//            update(String.format("Sending results to %s... ", outputFile));
-//            CSVParsing.matrixToCSV(costs_and_times, outputFile);
+            startTime = System.nanoTime();
+            int numIterations = 6;
+            
+            soln = Pathfinding.optimizeSA(
+                D, start, nEL, nCL, initialTemperature, finalTemperature, coolingSchedule, numIterations, VERBOSE); //compact solution
+            
+            int[] completePath = Pathfinding.completePath(A, soln, rooms, roomDirs); //modifies rooms, roomDirs
+            
+            encodedPath = Pathfinding.encodedPath(dir, completePath, rooms, roomDirs, false);
 
+            update("solution is " + Arrays.toString(soln));
+            stop = System.nanoTime();
+            runtime = stop - startTime; //time in nanoseconds
+            cost = Pathfinding.cost(D, start, soln);
+            update(String.format("nEL = %d. nCL = %d. \nSOLUTION COST = %.1f. \nRuntime = %fs.\n", nEL, nCL, cost, (double)runtime / 1000000000.0));
+            
+            String outputFile;
             outputFile = mapFileName.replace(".csv", "") + "_path.csv";
             update(String.format("Sending path to %s... ", outputFile));
             CSVParsing.listToFile(soln, outputFile);
+            
+            
 
             update(" done.\n");
         }
