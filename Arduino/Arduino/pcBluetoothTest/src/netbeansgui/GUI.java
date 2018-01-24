@@ -40,6 +40,7 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
     public GUI() {
         initComponents();
         path = "";
+        encodedPath = "";
         mapFileName = "";
         waitingForResponse = false;
     }
@@ -110,7 +111,7 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
         clearPath = new javax.swing.JButton();
         jLabel6 = new javax.swing.JLabel();
         showPath = new javax.swing.JButton();
-        numberBox = new javax.swing.JTextField();
+        pathBox = new javax.swing.JTextField();
         NodeNumberSpinner = new javax.swing.JSpinner();
         nodeNumberButton = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
@@ -278,9 +279,9 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
             }
         });
 
-        numberBox.addActionListener(new java.awt.event.ActionListener() {
+        pathBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                numberBoxActionPerformed(evt);
+                pathBoxActionPerformed(evt);
             }
         });
 
@@ -420,7 +421,7 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel5)
                         .addGap(18, 18, 18)
-                        .addComponent(numberBox, javax.swing.GroupLayout.PREFERRED_SIZE, 252, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(pathBox, javax.swing.GroupLayout.PREFERRED_SIZE, 252, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(38, 38, 38)
                         .addComponent(jLabel4)
                         .addGap(18, 18, Short.MAX_VALUE)
@@ -497,7 +498,7 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
                                 .addComponent(jLabel5)
                                 .addComponent(jLabel4)
                                 .addComponent(jLabel6)
-                                .addComponent(numberBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(pathBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(quit, javax.swing.GroupLayout.Alignment.TRAILING))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
@@ -595,17 +596,21 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
     private void clearPathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearPathActionPerformed
         PathField.setText("");
         path = new String("");
+        encodedPath = new String("");
         waitingForResponse = false;
     }//GEN-LAST:event_clearPathActionPerformed
 
     private void showPathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showPathActionPerformed
-        update(path);
+        if(encodedPath.length() > 0)
+            update(encodedPath);
+        else
+            update("Path is empty.");
     }//GEN-LAST:event_showPathActionPerformed
 
-    private void numberBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_numberBoxActionPerformed
-        path += (numberBox.getText() + " ");
-        PathField.append(numberBox.getText() + "\n");
-    }//GEN-LAST:event_numberBoxActionPerformed
+    private void pathBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pathBoxActionPerformed
+        encodedPath += (pathBox.getText() + " ");
+        PathField.append(pathBox.getText() + "\n");
+    }//GEN-LAST:event_pathBoxActionPerformed
 
     private void NodeNumberSpinnerMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {//GEN-FIRST:event_NodeNumberSpinnerMouseWheelMoved
         int x = (int)NodeNumberSpinner.getValue() - evt.getWheelRotation();
@@ -693,6 +698,7 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
     private void clearAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearAllActionPerformed
         PathField.setText("");
         path = new String("");
+        encodedPath = new String("");
         waitingForResponse = false;
         Messages.setText("");
         ArduinoMessages.setText("");
@@ -735,7 +741,7 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
     private javax.swing.JButton leftRoom;
     private javax.swing.JButton listPorts;
     private javax.swing.JButton nodeNumberButton;
-    private javax.swing.JTextField numberBox;
+    private javax.swing.JTextField pathBox;
     private javax.swing.JTextField portName;
     private javax.swing.JButton quit;
     private javax.swing.JButton rightIntersection;

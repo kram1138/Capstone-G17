@@ -94,7 +94,7 @@
                   <Group type="102" alignment="0" attributes="0">
                       <Component id="jLabel5" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Component id="numberBox" min="-2" pref="252" max="-2" attributes="0"/>
+                      <Component id="pathBox" min="-2" pref="252" max="-2" attributes="0"/>
                       <EmptySpace min="-2" pref="38" max="-2" attributes="0"/>
                       <Component id="jLabel4" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="32767" attributes="0"/>
@@ -184,7 +184,7 @@
                               <Component id="jLabel5" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="jLabel4" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="jLabel6" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="numberBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="pathBox" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <Component id="quit" alignment="1" min="-2" max="-2" attributes="0"/>
                       </Group>
@@ -441,9 +441,9 @@
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="showPathActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JTextField" name="numberBox">
+    <Component class="javax.swing.JTextField" name="pathBox">
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="numberBoxActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="pathBoxActionPerformed"/>
       </Events>
     </Component>
     <Component class="javax.swing.JSpinner" name="NodeNumberSpinner">
