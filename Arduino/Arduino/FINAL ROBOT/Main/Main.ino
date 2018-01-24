@@ -28,7 +28,7 @@ void setup()
 {
   pinMode(13, OUTPUT);
   
-  button.waitForButton();
+//  button.waitForButton();
   Serial.begin(38400);// set bluetooth serial baud rate of 38400
   Serial.println("Bluetooth Communication Established!");
   button.waitForButton();
@@ -52,10 +52,9 @@ void loop()
 {
   if (robot.GetState() == 0)
   {
-    //lineController.Navigate();
-    led.Blink(3000);
-  }
-  if (robot.GetState() == 1)
+    lineController.Navigate();
+//    led.Blink(3000);
+  } else if (robot.GetState() == 1)
   {
     cleaningController.Clean();
     if ((millis() - startTime)/ 1000 > cleaningTime)
@@ -90,5 +89,5 @@ void loop()
       led.Blink(50);
     }
   }
-  delay(10);
+//  delay(10);
 }

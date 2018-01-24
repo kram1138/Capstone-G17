@@ -44,7 +44,8 @@ void LineFollowController::Navigate()
     // constant of 6, which should work decently for many Zumo motor choices.
     // You probably want to use trial and error to tune these constants for
     // your particular Zumo and line course.
-    int speedDifference = error / 4 + 6 * (error - lastError);
+    int speedDifference = error / 10 + 2 * (error - lastError);
+    
     //    Serial.println(speedDifference);
     lastError = error;
 
@@ -68,6 +69,10 @@ void LineFollowController::Navigate()
       mRSpeed = MAX_SPEED;
 
     robot->SetMotors(mLSpeed, mRSpeed);
+    Serial.println(speedDifference);
+    Serial.println(mLSpeed);
+    Serial.println(mRSpeed);
+    Serial.println();
   }
   else
   {
