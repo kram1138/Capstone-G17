@@ -25,7 +25,6 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
     }
 
     private final GUIObservable myObservable = new GUIObservable();
-    private String path;
     private String mapFileName;
     private ArrayList<ArrayList<Float>> A = new ArrayList<ArrayList<Float>>(); //adjacency matrix
     private ArrayList<ArrayList<Integer>> dir = new ArrayList<ArrayList<Integer>>(); //node direction matrix
@@ -39,7 +38,6 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
 
     public GUI() {
         initComponents();
-        path = "";
         encodedPath = "";
         mapFileName = "";
         waitingForResponse = false;
@@ -112,8 +110,6 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
         jLabel6 = new javax.swing.JLabel();
         showPath = new javax.swing.JButton();
         pathBox = new javax.swing.JTextField();
-        NodeNumberSpinner = new javax.swing.JSpinner();
-        nodeNumberButton = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
         ArduinoMessages = new javax.swing.JTextArea();
         jScrollPane3 = new javax.swing.JScrollPane();
@@ -196,6 +192,7 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
 
         Stop.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
         Stop.setText("Stop");
+        Stop.setEnabled(false);
         Stop.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 StopActionPerformed(evt);
@@ -204,6 +201,7 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
 
         Start.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
         Start.setText("Start");
+        Start.setEnabled(false);
         Start.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 StartActionPerformed(evt);
@@ -282,21 +280,6 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
         pathBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 pathBoxActionPerformed(evt);
-            }
-        });
-
-        NodeNumberSpinner.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
-        NodeNumberSpinner.addMouseWheelListener(new java.awt.event.MouseWheelListener() {
-            public void mouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
-                NodeNumberSpinnerMouseWheelMoved(evt);
-            }
-        });
-
-        nodeNumberButton.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
-        nodeNumberButton.setText("Node Number");
-        nodeNumberButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                nodeNumberButtonActionPerformed(evt);
             }
         });
 
@@ -395,10 +378,6 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
                                     .addComponent(leftIntersection, javax.swing.GroupLayout.DEFAULT_SIZE, 169, Short.MAX_VALUE)
                                     .addComponent(rightRoom, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addComponent(leftRoom, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(nodeNumberButton)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(NodeNumberSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 56, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(showPath, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(sendPath, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(layout.createSequentialGroup()
@@ -477,11 +456,7 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
                         .addComponent(leftIntersection)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(rightIntersection)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(NodeNumberSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(nodeNumberButton))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGap(52, 52, 52)
                         .addComponent(sendPath)
                         .addGap(43, 43, 43)
                         .addComponent(showPath)
@@ -558,44 +533,42 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
     }//GEN-LAST:event_StartActionPerformed
 
     private void leftRoomActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_leftRoomActionPerformed
-        path += "lr_";
-        PathField.append("left room ");
-        char[] pathArray = path.toCharArray();
-//        pathArray[0] = Integer.toString(numNodes);
+        encodedPath += "a ";
+        PathField.append("left room\n");
     }//GEN-LAST:event_leftRoomActionPerformed
 
     private void rightRoomActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rightRoomActionPerformed
-        path += "rr_";
-        PathField.append("right room ");
+        encodedPath += "d ";
+        PathField.append("right room\n");
     }//GEN-LAST:event_rightRoomActionPerformed
 
     private void rightIntersectionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rightIntersectionActionPerformed
-        path += "ri_";
-        PathField.append("right intersection ");
+        encodedPath += "r ";
+        PathField.append("right intersection\n");
     }//GEN-LAST:event_rightIntersectionActionPerformed
 
     private void leftIntersectionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_leftIntersectionActionPerformed
-        path += "li_";
-        PathField.append("left intersection ");
+        encodedPath += "l ";
+        PathField.append("left intersection\n");
     }//GEN-LAST:event_leftIntersectionActionPerformed
 
     private void sendPathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendPathActionPerformed
-//        numNodes = 0; //Count how many spaces there are. Number of nodes is one more than that.
-//        for(int i = 0; i < path.length() - 1; i++){ // -1 to avoid counting the space at the end.
-//            if(path.charAt(i) == ' '){
-//                numNodes++;
-//            }
-//        }
-//        if(numNodes > 0 || !path.isEmpty()) numNodes++;
-//        sendMsg("path " + Integer.toString(numNodes) + " " + path); //the word "path" gets deleted before sending to robot.
+        numNodes = 0; //Count how many spaces there are. Number of nodes is one more than that.
+        encodedPath = encodedPath.trim(); //avoid space at the end.
+        for(int i = 0; i < encodedPath.length(); i++){
+            if(encodedPath.charAt(i) == ' '){
+                numNodes++;
+            }
+        }
+        if(numNodes > 0 || !encodedPath.isEmpty()) numNodes++;
+        sendMsg("path " + Integer.toString(numNodes) + " " + encodedPath); //the word "path" gets deleted before sending to robot.
 
-          sendMsg("path " + encodedPath);
+//          sendMsg("path " + encodedPath);
 //        waitingForResponse = true;
     }//GEN-LAST:event_sendPathActionPerformed
 
     private void clearPathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearPathActionPerformed
         PathField.setText("");
-        path = new String("");
         encodedPath = new String("");
         waitingForResponse = false;
     }//GEN-LAST:event_clearPathActionPerformed
@@ -611,16 +584,6 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
         encodedPath += (pathBox.getText() + " ");
         PathField.append(pathBox.getText() + "\n");
     }//GEN-LAST:event_pathBoxActionPerformed
-
-    private void NodeNumberSpinnerMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {//GEN-FIRST:event_NodeNumberSpinnerMouseWheelMoved
-        int x = (int)NodeNumberSpinner.getValue() - evt.getWheelRotation();
-        if(x >= 0) NodeNumberSpinner.setValue(x); //negative node number makes no sense
-    }//GEN-LAST:event_NodeNumberSpinnerMouseWheelMoved
-
-    private void nodeNumberButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nodeNumberButtonActionPerformed
-        path += (Integer.toString((int)NodeNumberSpinner.getValue()) + " ");
-        PathField.append(Integer.toString((int)NodeNumberSpinner.getValue()) + "\n");
-    }//GEN-LAST:event_nodeNumberButtonActionPerformed
 
     private void fileNameBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileNameBoxActionPerformed
         // TODO add your handling code here:
@@ -681,8 +644,6 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
             update(String.format("Sending path to %s... ", outputFile));
             CSVParsing.listToFile(soln, outputFile);
             
-            
-
             update(" done.\n");
         }
     }//GEN-LAST:event_createPathButtonActionPerformed
@@ -697,7 +658,6 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
 
     private void clearAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearAllActionPerformed
         PathField.setText("");
-        path = new String("");
         encodedPath = new String("");
         waitingForResponse = false;
         Messages.setText("");
@@ -720,7 +680,6 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
     private javax.swing.JTextArea ArduinoMessages;
     private javax.swing.JButton Close;
     private javax.swing.JTextArea Messages;
-    private javax.swing.JSpinner NodeNumberSpinner;
     private javax.swing.JButton Open;
     private javax.swing.JTextArea PathField;
     private javax.swing.JButton Start;
@@ -740,7 +699,6 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
     private javax.swing.JButton leftIntersection;
     private javax.swing.JButton leftRoom;
     private javax.swing.JButton listPorts;
-    private javax.swing.JButton nodeNumberButton;
     private javax.swing.JTextField pathBox;
     private javax.swing.JTextField portName;
     private javax.swing.JButton quit;
