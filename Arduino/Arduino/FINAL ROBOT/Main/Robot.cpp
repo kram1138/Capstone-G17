@@ -4,10 +4,11 @@
 
 Robot::Robot(int newThreshold)
 {
-  state = 0;
+  state = 2;
   threshold = threshold;
   ZumoReflectanceSensorArray arr;
   reflectanceSensors = &arr;
+  collisionFlag = false;
 }
 
 void Robot::Initialize()
@@ -39,15 +40,15 @@ void Robot::SetMotors(int l, int r)
 
 float Robot::FrontSensor()
 {
-  return pow(analogRead(A2)/2401.6,1/-.575);
+  return pow(analogRead(DIST_SENSOR_PIN_F)/2401.6,1/-.575);
 }
 float Robot::RightSensor1()
 {
-  return pow(analogRead(A1)/4205.5,1/-.777);
+  return pow(analogRead(DIST_SENSOR_PIN_R1)/4205.5,1/-.777);
 }
 float Robot::RightSensor2()
 {
-  return pow(analogRead(A0)/5970.8,1/-.886);
+  return pow(analogRead(DIST_SENSOR_PIN_R2)/5970.8,1/-.886);
 }
 
 int Robot::GetState()
@@ -61,11 +62,57 @@ void Robot::SetState(int newState)
 
 int Robot::ReflectanceSensorPos()
 {
+  reflectanceSensors->readCalibrated(sensors);
+//  for (int i = 0; i < 6; i++)
+//  {
+//    Serial.print(sensors[i]);
+//    Serial.print("\t");
+//  }
+//  Serial.println();
   return reflectanceSensors->readLine(sensors);
 }
+
 int * Robot::ReflectanceSensors()
 {
-  reflectanceSensors->readLine(sensors);
+  reflectanceSensors->readCalibrated(sensors);
+//  for (int i = 0; i < 6; i++)
+//  {
+//    Serial.print(sensors[i]);
+//    Serial.print("\t");
+//  }
+//  Serial.println();
   return sensors;
+}
+
+/*bool Robot::OnLine()
+{
+  int count = 0;
+  int i;
+  reflectanceSensors->readLine(sensors);
+  for (i = 0; i < NUM_OF_SENSORS; i++)
+  {
+    Serial.print(sensors[i]);
+    Serial.print("\t");
+  }
+  Serial.print("\n");
+  //Serial.println();
+  for (i = 0; i < NUM_OF_SENSORS; i++)
+  {
+    if (sensors[i] > 750)
+      return true;
+  }
+  return false;
+}*/
+
+bool Robot::CollisionSensor()
+{
+  bool ret = collisionFlag;
+  collisionFlag = false;
+  if (ret || digitalRead(COL_SENSOR_PIN))
+  {
+    Serial.println("Hit something");
+    return true;
+  }
+  return false;
 }
 

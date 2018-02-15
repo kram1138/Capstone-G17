@@ -12,4 +12,5 @@ class WallFollowController
   private:
     Robot * robot;
     int state;
+    unsigned long startTime;
 };
