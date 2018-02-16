@@ -50,6 +50,7 @@ public class Simulator{
 		for(int i = 0; i < numIterations; i++){
 			soln = optimizeSA(distMatrix, start, nEL, nCL, initialTemperature, finalTemperature, coolingSchedule, verbose);
 			cost = cost(distMatrix, start, soln);
+			if(verbose) System.out.printf("Cost is %f\n", cost);
 			if(cost < best){
 				best = cost;
 				System.arraycopy(soln, 0, bestSoln, 0, n);
@@ -408,6 +409,9 @@ public class Simulator{
 		rooms and roomDirs are modified by this function to be the rooms and roomsDirs lists for the complete path, so they will be longer.
 		The length of the return value of this function will be equal to the final size of rooms and roomsDirs.
 		*/
+		System.out.printf("path.length is %d\n", path.length);
+		System.out.printf("rooms.size() is %d\n", rooms.size());
+		System.out.printf("roomDirs.size() is %d\n", roomDirs.size());
 
 		ArrayList<Character> oldRooms = new ArrayList<Character>();
 		ArrayList<Character> oldRoomDirs = new ArrayList<Character>();
@@ -428,6 +432,7 @@ public class Simulator{
 					roomDirs.add(oldRoomDirs.get(path[i])); //add roomDir entry for this node.
 				}else{ //no edge from path[i-1] to path[i]
 					int[] subpath = shortestPath(A, path[i-1], path[i], false);
+					System.out.printf("djikstra shortest path from %d to %d is %s\n", path[i-1], path[i], Arrays.toString(subpath));
 					for(int k = 1; k < subpath.length; k++){ //ignore subpath[0] because it was already added on the previous iteration
 						result.add(subpath[k]);
 						rooms.add(oldRooms.get(subpath[k])); //add room entry for this node.
@@ -435,6 +440,13 @@ public class Simulator{
 					}
 				}
 			}
+		}
+		int[] subpath = shortestPath(A, path[path.length-1], path[0], false);
+		System.out.printf("djikstra shortest path from %d to %d is %s\n", path[path.length-1], path[0], Arrays.toString(subpath));
+		for(int k = 1; k < subpath.length; k++){ //ignore subpath[0] because it was already added on the previous iteration
+			result.add(subpath[k]);
+			rooms.add(oldRooms.get(subpath[k])); //add room entry for this node.
+			roomDirs.add(oldRoomDirs.get(subpath[k])); //add roomDir entry for this node.
 		}
 		return Generic.arrayListToArray(result);
 	}

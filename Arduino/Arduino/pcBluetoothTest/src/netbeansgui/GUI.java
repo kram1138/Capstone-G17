@@ -645,6 +645,17 @@ public class GUI extends javax.swing.JFrame implements userinterface.UserInterfa
             CSVParsing.listToFile(soln, outputFile);
             
             update(" done.\n");
+            
+            for(int i = 0; i < encodedPath.length(); i++){
+                switch(encodedPath.charAt(i)){
+                    case 'l': PathField.append("left intersection\n"); break;
+                    case 'r': PathField.append("right intersection\n"); break;
+                    case 'a': PathField.append("left room\n"); break;
+                    case 'd': PathField.append("right room\n"); break;
+                    case 'f': PathField.append("forward\n"); break;
+                    default: break; //spaces get ignored
+                }
+            }
         }
     }//GEN-LAST:event_createPathButtonActionPerformed
 

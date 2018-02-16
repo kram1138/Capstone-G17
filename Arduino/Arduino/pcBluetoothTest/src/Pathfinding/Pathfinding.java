@@ -2,7 +2,7 @@
 Pathfinding Simulator.
 
 @author Lucas Wiebe-Dembowski
-@since 01/21/2018
+@since 02/01/2018
 */
 package Pathfinding;
 
@@ -303,7 +303,7 @@ public class Pathfinding{
 		// System.out.println(path[path.length-1]);
 		// System.out.println(str);
 		result += str;
-		result = Integer.toString(result.split("\\s+").length) + " " + result;
+//		result = Integer.toString(result.split("\\s+").length) + " " + result;
 		return result;
 	}
 

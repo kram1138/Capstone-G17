@@ -16,7 +16,7 @@ import Simulator.Simulator;
 public class Test{
 
 	final static boolean VERBOSE = false;
-	final static int numIntersections = 5;
+	final static int numIntersections = 10;
 
 	public static void main(String[] args){
 		// testCSVParser("adjMatrix1.csv", "out/adjMatrix1_out.csv");
@@ -25,8 +25,8 @@ public class Test{
 		// testAllPairsShortestPathFunction();
 		// testDijkstra();
 
-		// testCompletePath();
-		testEncodedPath();
+		testCompletePath();
+		// testEncodedPath();
 
 		// testMapMatrixFromCSV();
 
@@ -57,32 +57,34 @@ public class Test{
 	}
 
 	public static void testSimulator(){
-		int numRooms = 50;
+		int numRooms = 100;
 		int maxDirectionsPerIntersection = 3;
 
-		// ArrayList<ArrayList<Float>> A = MatrixGenerator.randomConnectedAdjMatrix(numRooms, numIntersections, maxDirectionsPerIntersection, false);
-		// CSVParsing.matrixToCSV(A, "matrix50_5_3.csv");
-		String file = "matrix4MSP";
+		ArrayList<ArrayList<Float>> A = MatrixGenerator.randomConnectedAdjMatrix(numRooms, numIntersections, maxDirectionsPerIntersection, false);
+		CSVParsing.matrixToCSV(A, "testGraph3.csv");
+
+		String file = "testGraph3";
 		// ArrayList<ArrayList<Float>> A = CSVParsing.matrixListFromCSV("matrix4.csv");
 		// ArrayList<ArrayList<Float>> A = CSVParsing.matrixListFromCSV("matrix30.csv");
-		ArrayList<ArrayList<Float>> A = CSVParsing.matrixListFromCSV(file + ".csv");
+		// ArrayList<ArrayList<Float>> A = CSVParsing.matrixListFromCSV(file + ".csv");
 
 		ArrayList<ArrayList<Float>> D = MatrixGenerator.allPairsShortestPaths(A, VERBOSE);
 
 		System.out.println("\n----------------------------------------------\n");
-		int[] what1 = {0, 3, 2, 8, 5, 7, 1, 4, 6, 10, 9};
-		int[] what2 = {8, 2, 3, 0, 5, 7, 1, 4, 6, 10, 9};
-		int[] what3 = {9, 10, 6, 1, 4, 7, 0, 5, 3, 2, 8};
-		System.out.printf("cost is %f", Simulator.cost(D, 9, what3));
+		// int[] what1 = {0, 3, 2, 8, 5, 7, 1, 4, 6, 10, 9};
+		// int[] what2 = {8, 2, 3, 0, 5, 7, 1, 4, 6, 10, 9};
+		// int[] what3 = {9, 10, 6, 1, 4, 7, 0, 5, 3, 2, 8};
+		int[] humanPathTestGraph1 = {0, 24, 6, 19, 9, 7, 23, 11, 15, 4, 30, 2, 23, 21, 1, 18, 14, 34, 22, 16, 10, 25, 8, 31, 12, 29, 26, 5, 28, 3, 33, 17, 20, 13, 27};
+		System.out.printf("cost is %f", Simulator.cost(D, 9, humanPathTestGraph1));
 		System.out.println("\n----------------------------------------------\n");
 
-		if(VERBOSE){
+		// if(VERBOSE){
 			System.out.println("Adjacency Matrix:");
 			Generic.printAdjMatrix(A);
-			System.out.println("Distance Matrix:");
-			Generic.printAdjMatrix(D);
-			Generic.printAdjMatrix(MatrixGenerator.binaryMatrix(A));
-		}
+			// System.out.println("Distance Matrix:");
+			// Generic.printAdjMatrix(D);
+			// Generic.printAdjMatrix(MatrixGenerator.binaryMatrix(A));
+		// }
 
 		int nEL = 2000;
 		int nCL = 2000;
@@ -102,7 +104,7 @@ public class Test{
 		// for(int j = 0; j < 100; j++){
 			startTime = System.nanoTime();
 			int numIterations = 6;
-			soln = Simulator.optimizeSA(D, start, nEL, nCL, initialTemperature, finalTemperature, coolingSchedule, numIterations, VERBOSE);
+			soln = Simulator.optimizeSA(D, start, nEL, nCL, initialTemperature, finalTemperature, coolingSchedule, numIterations, true);
 			System.out.println("solution is " + Arrays.toString(soln));
 			stop = System.nanoTime();
 			runtime = stop - startTime; //time in nanoseconds
@@ -140,21 +142,34 @@ public class Test{
 		//Successfully tested on matrix4.csv (no corners or directions) 
 		//and matrix4Updated.csv (with corners, no directions)
 
-		String file = "smallGraph3Map.csv";
-		ArrayList<ArrayList<Float>> A = CSVParsing.matrixListFromCSV("matrix4Updated.csv");
+		// ArrayList<ArrayList<Float>> A = CSVParsing.matrixListFromCSV("matrix4Updated.csv");
+		ArrayList<ArrayList<Float>> A = CSVParsing.matrixListFromCSV("testGraph2.csv");
 		ArrayList<ArrayList<Float>> adj = new ArrayList<ArrayList<Float>>();
 		ArrayList<ArrayList<Integer>> dir = new ArrayList<ArrayList<Integer>>();
 		ArrayList<Character> rooms = new ArrayList<Character>();
 		ArrayList<Character> roomDirs = new ArrayList<Character>();
-		Simulator.mapMatrixFromCSV(file, adj, dir, rooms, roomDirs, false);
-		Generic.printAdjMatrix(A);
-		Generic.printAdjMatrix(adj);
-		System.out.println("A is " + (Generic.matricesDeepEquals(A, adj) ? "" : "NOT") + " equal to adj.");
+
+		// String file = "smallGraph3Map.csv";
+		// Simulator.mapMatrixFromCSV(file, adj, dir, rooms, roomDirs, false); //MODIFIES ROOMS, ROOMDIRS
+		// Generic.printAdjMatrix(A);
+		// Generic.printAdjMatrix(adj);
+		// System.out.println("A is " + (Generic.matricesDeepEquals(A, adj) ? "" : "NOT") + " equal to adj.");
 
 		// int[] path = {0, 5, 3, 2, 8, 4, 10, 9, 6, 1, 7}; //matrix4
-		int[] path = {0, 13, 5, 3, 15, 2, 11, 8, 4, 12, 10, 14, 9, 6, 1, 16, 7}; //matrix4Updated
+		// int[] path = {0, 13, 5, 3, 15, 2, 11, 8, 4, 12, 10, 14, 9, 6, 1, 16, 7}; //matrix4Updated
+		//testGraph2.csv
+		int[] path = {0, 48, 11, 19, 20, 26, 3, 51, 24, 23, 25, 34, 36, 47, 30, 27, 33, 41, 15, 22, 12, 17, 53, 39, 50, 49, 29, 10, 18, 31, 13, 43, 7, 32, 16, 46, 8, 28, 1, 40, 45, 37, 52, 54, 21, 2, 9, 42, 5, 4, 6, 14, 35, 38, 44};
+		//testGraph1.csv
+		// int[] path = {0, 9, 23, 7, 19, 6, 24, 4, 30, 1, 29, 12, 31, 8, 25, 10, 16, 34, 22, 14, 18, 21, 2, 32, 33, 20, 27, 13, 17, 3, 28, 5, 26, 15, 11};
+		if(rooms.size() == 0 && roomDirs.size() == 0){//just testing complete path, don't care about direction.
+			for(int i = 0; i < path.length; i++){ 
+				rooms.add('z');
+				roomDirs.add('z');
+			}
+		}
 		System.out.printf("Compact path starting at %d is %s\n", path[0], Arrays.toString(path));
-		int[] completePath = Simulator.completePath(adj, path, rooms, roomDirs); //modifies rooms, roomDirs
+		// int[] completePath = Simulator.completePath(adj, path, rooms, roomDirs); //modifies rooms, roomDirs
+		int[] completePath = Simulator.completePath(A, path, rooms, roomDirs); //modifies rooms, roomDirs
 		System.out.printf("Complete path starting at %d is %s\n", completePath[0], Arrays.toString(completePath));
 	}
 
