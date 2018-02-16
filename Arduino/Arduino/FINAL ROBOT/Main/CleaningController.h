@@ -12,4 +12,5 @@ class CleaningController
     int threshold;
     int cleanState;
     int dir;
+    unsigned long startTime;
 };

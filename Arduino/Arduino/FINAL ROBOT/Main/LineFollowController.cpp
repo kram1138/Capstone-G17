@@ -21,11 +21,6 @@ void LineFollowController::Navigate()
   String bData;
   unsigned long lastTime = 0;
 
-  // Get the position of the line.  Note that we *must* provide the "sensors"
-  // argument to readLine() here, even though we are not interested in the
-  // individual sensor readings
-  int position = robot->ReflectanceSensorPos();
-
   // call method to check if arrived at a node
   CheckNodes();
 
@@ -33,19 +28,22 @@ void LineFollowController::Navigate()
   // sensors or if the two sensors on both end detect a line.
   if (!Centered())
   {
-
+    // Get the position of the line.  Note that we *must* provide the "sensors"
+    // argument to readLine() here, even though we are not interested in the
+    // individual sensor readings
+    int position = robot->ReflectanceSensorPos();
+    
     // Our "error" is how far we are away from the center of the line, which
     // corresponds to position 2500.
     int error = position - 2500;
-
+    Serial.println(error);
     // Get motor speed difference using proportional and derivative PID terms
     // (the integral term is generally not very useful for line following).
     // Here we are using a proportional constant of 1/4 and a derivative
     // constant of 6, which should work decently for many Zumo motor choices.
     // You probably want to use trial and error to tune these constants for
     // your particular Zumo and line course.
-    int speedDifference = error / 10 + 2 * (error - lastError);
-    
+    int speedDifference = error / 4 + 6 * (error - lastError);
     //    Serial.println(speedDifference);
     lastError = error;
 
@@ -69,10 +67,6 @@ void LineFollowController::Navigate()
       mRSpeed = MAX_SPEED;
 
     robot->SetMotors(mLSpeed, mRSpeed);
-    Serial.println(speedDifference);
-    Serial.println(mLSpeed);
-    Serial.println(mRSpeed);
-    Serial.println();
   }
   else
   {

@@ -8,6 +8,10 @@
 #include <Pushbutton.h>
 
 static const int NUM_OF_SENSORS = 6;// number of reflectance sensors
+static const int COL_SENSOR_PIN = 3;// pin the buttons of the collision sensor are attached to
+static const int DIST_SENSOR_PIN_R1 = A1;
+static const int DIST_SENSOR_PIN_R2 = A4;
+static const int DIST_SENSOR_PIN_F = A5;
 
 class Robot
 {
@@ -20,10 +24,13 @@ class Robot
     float FrontSensor();
     float RightSensor1();
     float RightSensor2();
+    bool CollisionSensor();
     int GetState();
     void SetState(int newState);
     int ReflectanceSensorPos();
+    //bool OnLine();
     int * ReflectanceSensors();
+    bool collisionFlag;
   private:
     ZumoMotors * motors;
     ZumoReflectanceSensorArray * reflectanceSensors;

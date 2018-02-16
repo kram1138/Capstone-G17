@@ -15,6 +15,11 @@ CleaningController::CleaningController(Robot * newRobot, int newThreshold)
 
 void CleaningController::Clean()
 {
+  if (robot->CollisionSensor())
+  {
+    cleanState = 2;
+    startTime = millis();
+  }
   if (cleanState == 0)
   {
     if (robot->FrontSensor() < threshold || robot->RightSensor1() < threshold)
@@ -47,6 +52,15 @@ void CleaningController::Clean()
         robot->SetMotors(150, -150);
       }
     }
+  }
+  else if (cleanState == 2)
+  {
+      robot->SetMotors(-150,-150);
+      if (millis() - startTime > 1000)
+      {
+        cleanState = 1;
+        dir = random(0,1);
+      }
   }
 }
 #endif
