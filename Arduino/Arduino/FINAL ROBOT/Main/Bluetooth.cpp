@@ -4,38 +4,26 @@ Bluetooth::Bluetooth(int baud)
 {
   baudRate = baud;
   incCmd = false;
-  bData = "";
+  bData = malloc(IN_STR_BUFFER);
+  inIndex = 0;
 }
 
 char * Bluetooth::LoadMap()
 {
-  String mapData = "";
+  /*String mapData = "";
 
   snprintf(printStr, PRINT_STR_BUFFER, "Starting loop to receive data...\n");
   Serial.println(printStr);
   
-  mapData = GetMapData();
-
-  int spaceIndex = mapData.indexOf(' ');
-  int numTurns = mapData.substring(0, spaceIndex).toInt();
-  char * mapArr = malloc(sizeof(char) * numTurns + 1);
-  String dataArr[numTurns];
-  String data = mapData.substring(spaceIndex + 1);// removes turns number from the front
-
-  snprintf(printStr, PRINT_STR_BUFFER, "\nData: %s\n", data.c_str());
-  Serial.println(printStr);
-
-  SplitByDelimiterIntoArray(data, dataArr, DELIMITER_SPACE, numTurns);
-  snprintf(printStr, PRINT_STR_BUFFER, "Done split by space!\n");
-  Serial.println(printStr);
-
-  for (int i = 0; i < numTurns; i++) {
-    mapArr[i] = dataArr[i][0];
-    snprintf(printStr, PRINT_STR_BUFFER, "Turn%d: %c\n", i+1,mapArr[i]);
-    Serial.println(printStr);
-  }
-  mapArr[numTurns] = '\0';
-  return mapArr;
+//  mapData = GetMapData();
+//  Serial.println(mapData);
+//  Serial.println(mapData.length());
+  char * ret = malloc(mapData.length()+1);
+  /*strcpy(ret, mapData.c_str());
+  Serial.println(ret);*/
+  ReadCmdFromBluetooth(true);
+  Serial.println(bData);
+  return bData;
 }
 String Bluetooth::GetMapData()
 {
@@ -61,8 +49,21 @@ String Bluetooth::GetMapDataString()
 // while there are bytes available in input buffer or "enter" (0x0D) is
 // read. It stores the characters read in String called bData which gets
 // returned after it is trimmed and printed to bluetooth serial.
-String Bluetooth::ReadCmdFromBluetooth(bool printBData)
+char * Bluetooth::ReadCmdFromBluetooth(bool printBData)
 {
+  while (Serial.available() == 0);
+  
+  byte ch = Serial.read();
+  while (Serial.available() > 0 && ch != '\n' && ch != '\r')
+  {
+    bData[inIndex] = ch;
+    ch = Serial.read();
+    inIndex++;
+  }
+
+  bData[inIndex] = '\0';
+  
+  /*
   char temp;
 
   if (!incCmd)
@@ -97,7 +98,7 @@ String Bluetooth::ReadCmdFromBluetooth(bool printBData)
   else
   {
     return (String)"";
-  }
+  }*/
 }
 
 void Bluetooth::SplitByDelimiterIntoArray(String str, String *strArr, char delimiter, const int strArrSize)

@@ -4,6 +4,7 @@
 
 const char ETB = 0x17;// END OF TRANSMISSION BLOCK 0x0D;
 static const int PRINT_STR_BUFFER = 256;// print string buffer size
+static const int IN_STR_BUFFER = 256;// print string buffer size
 static const char * DELIMITER_SPACE = {' '};
 static const char * DELIMITER_UNDERSCORE = {'_'};
 
@@ -15,11 +16,12 @@ class Bluetooth
   private:
     int baudRate;
     boolean incCmd;
-    String bData;
+    int inIndex;
+    char * bData;
     char printStr[PRINT_STR_BUFFER];// char array buffer for writing msgs to serial
     String GetMapData();
     String GetMapDataString();
-    String ReadCmdFromBluetooth(bool printBData);
+    char * ReadCmdFromBluetooth(bool printBData);
     void Bluetooth::SplitByDelimiterIntoArray(String str, String *strArr, char delimiter, const int strArrSize);
 };
 
