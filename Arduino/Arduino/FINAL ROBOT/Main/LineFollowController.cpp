@@ -194,13 +194,39 @@ void LineFollowController::CheckToTurn()
   }
 }
 
+boolean LineFollowController::foundWhiteSpace()
+{
+  boolean foundWhite;
+  int * sensors = robot->ReflectanceSensors();
+  // Sets isCentered boolean to true if only either the middle two sensors
+  // find the line otherwise boolean value of false is set.
+  if ((sensors[0] < MIN_LINE_FOUND and sensors[5] < MIN_LINE_FOUND and
+       sensors[1] < MIN_LINE_FOUND and sensors[4] < MIN_LINE_FOUND) and
+      (sensors[REFL_SENSOR_LEFT_MIDDLE] < MIN_LINE_FOUND or
+       sensors[REFL_SENSOR_RIGHT_MIDDLE] < MIN_LINE_FOUND))
+  {
+    foundWhite = true;
+  }
+  else
+  {
+    foundWhite = false;
+  }
+  return foundWhite;
+}
+
 void LineFollowController::WaitWhileTurning()
 {
   bool fullyTurned = false;
-
+  bool foundWhite = false;
+  
   while (!fullyTurned)
   {
-    if (Centered())
+    if (foundWhite == false)
+    {
+      foundWhite = foundWhiteSpace();
+    }
+    
+    if (foundWhite && Centered())
     {
       fullyTurned = true;
     }

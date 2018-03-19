@@ -26,6 +26,7 @@ class LineFollowController
     boolean Centered();
     void CheckToTurn();
     void WaitWhileTurning();
+    boolean foundWhiteSpace();
     
     Robot * robot;
     char * mapArray;
