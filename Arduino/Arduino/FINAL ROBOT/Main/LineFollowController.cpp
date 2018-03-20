@@ -14,11 +14,6 @@ void LineFollowController::Init(char * newMap)
   countL = 0;
   currTurn = 0;
   mapArray = newMap;
- Serial.println(strlen(mapArray));
-  for (int i; i < strlen(mapArray); i++)
-  {
-    Serial.println(mapArray[i]);
-  }
 }
 
 void LineFollowController::Navigate()
@@ -41,7 +36,7 @@ void LineFollowController::Navigate()
     // Our "error" is how far we are away from the center of the line, which
     // corresponds to position 2500.
     int error = position - 2500;
-    //Serial.println(error);
+//    Serial.println(error);
     // Get motor speed difference using proportional and derivative PID terms
     // (the integral term is generally not very useful for line following).
     // Here we are using a proportional constant of 1/4 and a derivative
@@ -81,48 +76,40 @@ void LineFollowController::Navigate()
 
 void LineFollowController::CheckNodes()
 {
-  //Serial.println("CHECKNODES");
   bool foundIntersection = false;
-  int * aaaa = robot->ReflectanceSensors();
-  for(int i = 0; i < 6; i++){
-    Serial.print(aaaa[i]);  Serial.print('\t');
-  }
-  Serial.println("");
+  
   // check line read at left end sensor
   if (robot->ReflectanceSensors()[REFL_SENSOR_LEFT_END] > MIN_LINE_FOUND)
   {
-    foundIntersection = true;
-//    countL++;
-//
-//    // increment nodeL if read line at left sensor MIN_CONSEC_COUNT times
-////    if (countL == MIN_CONSEC_COUNT)
-////    {
-//      foundIntersection = true;
-////    }
-//  } else // 0 countL if no line was found
-//  {
-//    countL = 0;
+    countL++;
+
+    // increment nodeL if read line at left sensor MIN_CONSEC_COUNT times
+    if (countL == MIN_CONSEC_COUNT)
+    {
+      foundIntersection = true;
+    }
+  } else // 0 countL if no line was found
+  {
+    countL = 0;
   }
 
   // check line read at right end sensor
   if (robot->ReflectanceSensors()[REFL_SENSOR_RIGHT_END] > MIN_LINE_FOUND)
   {
-    foundIntersection = true;
-//    countR++;
-//
-//    // increment nodeR if read line at right sensor MIN_CONSEC_COUNT times
-////    if (countR == MIN_CONSEC_COUNT)
-////    {
-//      foundIntersection = true;
-//    //}
-//  } else // 0 countR if no line was found
-//  {
-//    countR = 0;
+    countR++;
+
+    // increment nodeR if read line at right sensor MIN_CONSEC_COUNT times
+    if (countR == MIN_CONSEC_COUNT)
+    {
+      foundIntersection = true;
+    }
+  } else // 0 countR if no line was found
+  {
+    countR = 0;
   }
 
   if (foundIntersection)
   {
-    Serial.println("FOUND A INTERSETION");
     CheckToTurn();
   }
 }
@@ -154,7 +141,6 @@ boolean LineFollowController::Centered()
 
 void LineFollowController::CheckToTurn()
 {
-  Serial.println(mapArray);
   if (currTurn < strlen(mapArray))
   {
     char turnDirection = mapArray[currTurn];
@@ -179,10 +165,18 @@ void LineFollowController::CheckToTurn()
     }
     else if (turnDirection == ROOM_ON_LEFT)
     {
-      Serial.println("Entering room...");
+      Serial.println("Turning to left room...");
       currTurn++;
-      robot->SetMotors(200, 200);
-      delay(3000);
+      robot->SetMotors(-100, 150);
+      WaitWhileTurning();
+      robot->SetState(1);
+    }
+    else if (turnDirection == ROOM_ON_RIGHT)
+    {
+      Serial.println("Turning to right room...");
+      currTurn++;
+      robot->SetMotors(150, -100);
+      WaitWhileTurning();
       robot->SetState(1);
     }
     else
@@ -200,10 +194,8 @@ boolean LineFollowController::foundWhiteSpace()
   int * sensors = robot->ReflectanceSensors();
   // Sets isCentered boolean to true if only either the middle two sensors
   // find the line otherwise boolean value of false is set.
-  if ((sensors[0] < MIN_LINE_FOUND and sensors[5] < MIN_LINE_FOUND and
-       sensors[1] < MIN_LINE_FOUND and sensors[4] < MIN_LINE_FOUND) and
-      (sensors[REFL_SENSOR_LEFT_MIDDLE] < MIN_LINE_FOUND or
-       sensors[REFL_SENSOR_RIGHT_MIDDLE] < MIN_LINE_FOUND))
+  if (sensors[REFL_SENSOR_LEFT_MIDDLE] < MIN_LINE_FOUND and
+       sensors[REFL_SENSOR_RIGHT_MIDDLE] < MIN_LINE_FOUND)
   {
     foundWhite = true;
   }
@@ -218,7 +210,8 @@ void LineFollowController::WaitWhileTurning()
 {
   bool fullyTurned = false;
   bool foundWhite = false;
-  
+
+//  delay(500);
   while (!fullyTurned)
   {
     if (foundWhite == false)

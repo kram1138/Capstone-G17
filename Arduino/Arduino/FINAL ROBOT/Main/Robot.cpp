@@ -23,13 +23,9 @@ void Robot::Initialize()
   for(i = 0; i < 80; i++)
   {
     if ((i > 10 && i <= 30) || (i > 50 && i <= 70))
-    {
       SetMotors(-200, 200);
-    }
     else
-    {
       SetMotors(200, -200);
-    }
     reflectanceSensors->calibrate();
 
     delay(20);

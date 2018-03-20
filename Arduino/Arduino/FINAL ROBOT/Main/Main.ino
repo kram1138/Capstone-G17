@@ -20,9 +20,9 @@ LED led;
 
 unsigned long startTime;
 
-const unsigned int cleaningTime = 10;
-const unsigned int wallFollowTimeout = 150;
-const unsigned int wallFollowResetTime = 30;
+const unsigned int cleaningTime = 60;
+const unsigned int wallFollowTimeout = 60;
+const unsigned int wallFollowResetTime = 15;
 
 const unsigned int NAVIGATING = 0;
 const unsigned int CLEANING = 1;
@@ -115,7 +115,7 @@ void loop()
 
 void CollisionInterrupt()
 {
-  //Serial.println("Hit something");
+  Serial.println("Hit something");
   //robot.collisionFlag = true;
   robot.SetMotors(0,0);
 }
